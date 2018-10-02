@@ -83,3 +83,5 @@ src/doxygen.log
 .idea
 # VS Code
 .vscode
+# C2rust intermediary files
+*.c.cbor
