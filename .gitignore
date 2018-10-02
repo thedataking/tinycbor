@@ -79,3 +79,7 @@ src/cjson
 src/doxygen.log
 !/Makefile
 .config
+# IntelliJ CLion
+.idea
+# VS Code
+.vscode
