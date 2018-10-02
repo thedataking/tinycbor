@@ -1,0 +1,296 @@
+[
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-I./src",
+            "-std=gnu99",
+            "-Wall",
+            "-Wextra",
+            "-fPIC",
+            "-o",
+            "src/cborpretty_stdio.pic.o",
+            "src/cborpretty_stdio.c"
+        ],
+        "directory": "/home/perl/Work/tinycbor",
+        "file": "src/cborpretty_stdio.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-I./src",
+            "-std=gnu99",
+            "-Wall",
+            "-Wextra",
+            "-fPIC",
+            "-o",
+            "src/cborencoder_close_container_checked.pic.o",
+            "src/cborencoder_close_container_checked.c"
+        ],
+        "directory": "/home/perl/Work/tinycbor",
+        "file": "src/cborencoder_close_container_checked.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-I./src",
+            "-std=gnu99",
+            "-Wall",
+            "-Wextra",
+            "-o",
+            "src/cborencoder_close_container_checked.o",
+            "src/cborencoder_close_container_checked.c"
+        ],
+        "directory": "/home/perl/Work/tinycbor",
+        "file": "src/cborencoder_close_container_checked.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-I./src",
+            "-std=gnu99",
+            "-Wall",
+            "-Wextra",
+            "-fPIC",
+            "-o",
+            "src/cbortojson.pic.o",
+            "src/cbortojson.c"
+        ],
+        "directory": "/home/perl/Work/tinycbor",
+        "file": "src/cbortojson.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-I./src",
+            "-std=gnu99",
+            "-Wall",
+            "-Wextra",
+            "-o",
+            "src/cborerrorstrings.o",
+            "src/cborerrorstrings.c"
+        ],
+        "directory": "/home/perl/Work/tinycbor",
+        "file": "src/cborerrorstrings.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-I./src",
+            "-std=gnu99",
+            "-Wall",
+            "-Wextra",
+            "-o",
+            "src/cborparser.o",
+            "src/cborparser.c"
+        ],
+        "directory": "/home/perl/Work/tinycbor",
+        "file": "src/cborparser.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-I./src",
+            "-std=gnu99",
+            "-Wall",
+            "-Wextra",
+            "-o",
+            "src/cborpretty_stdio.o",
+            "src/cborpretty_stdio.c"
+        ],
+        "directory": "/home/perl/Work/tinycbor",
+        "file": "src/cborpretty_stdio.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-I./src",
+            "-std=gnu99",
+            "-Wall",
+            "-Wextra",
+            "-o",
+            "src/cborvalidation.o",
+            "src/cborvalidation.c"
+        ],
+        "directory": "/home/perl/Work/tinycbor",
+        "file": "src/cborvalidation.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-I./src",
+            "-std=gnu99",
+            "-Wall",
+            "-Wextra",
+            "-fPIC",
+            "-o",
+            "src/cborvalidation.pic.o",
+            "src/cborvalidation.c"
+        ],
+        "directory": "/home/perl/Work/tinycbor",
+        "file": "src/cborvalidation.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-I./src",
+            "-std=gnu99",
+            "-Wall",
+            "-Wextra",
+            "-o",
+            "src/cborpretty.o",
+            "src/cborpretty.c"
+        ],
+        "directory": "/home/perl/Work/tinycbor",
+        "file": "src/cborpretty.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-I./src",
+            "-std=gnu99",
+            "-Wall",
+            "-Wextra",
+            "-o",
+            "src/cborparser_dup_string.o",
+            "src/cborparser_dup_string.c"
+        ],
+        "directory": "/home/perl/Work/tinycbor",
+        "file": "src/cborparser_dup_string.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-I./src",
+            "-std=gnu99",
+            "-Wall",
+            "-Wextra",
+            "-fPIC",
+            "-o",
+            "src/cborerrorstrings.pic.o",
+            "src/cborerrorstrings.c"
+        ],
+        "directory": "/home/perl/Work/tinycbor",
+        "file": "src/cborerrorstrings.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-I./src",
+            "-std=gnu99",
+            "-Wall",
+            "-Wextra",
+            "-fPIC",
+            "-o",
+            "src/cborencoder.pic.o",
+            "src/cborencoder.c"
+        ],
+        "directory": "/home/perl/Work/tinycbor",
+        "file": "src/cborencoder.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-I./src",
+            "-std=gnu99",
+            "-Wall",
+            "-Wextra",
+            "-fPIC",
+            "-o",
+            "src/cborpretty.pic.o",
+            "src/cborpretty.c"
+        ],
+        "directory": "/home/perl/Work/tinycbor",
+        "file": "src/cborpretty.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-I./src",
+            "-std=gnu99",
+            "-Wall",
+            "-Wextra",
+            "-o",
+            "src/cborencoder.o",
+            "src/cborencoder.c"
+        ],
+        "directory": "/home/perl/Work/tinycbor",
+        "file": "src/cborencoder.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-I./src",
+            "-std=gnu99",
+            "-Wall",
+            "-Wextra",
+            "-fPIC",
+            "-o",
+            "src/cborparser.pic.o",
+            "src/cborparser.c"
+        ],
+        "directory": "/home/perl/Work/tinycbor",
+        "file": "src/cborparser.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-I./src",
+            "-std=gnu99",
+            "-Wall",
+            "-Wextra",
+            "-o",
+            "src/cbortojson.o",
+            "src/cbortojson.c"
+        ],
+        "directory": "/home/perl/Work/tinycbor",
+        "file": "src/cbortojson.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-I./src",
+            "-std=gnu99",
+            "-Wall",
+            "-Wextra",
+            "-fPIC",
+            "-o",
+            "src/cborparser_dup_string.pic.o",
+            "src/cborparser_dup_string.c"
+        ],
+        "directory": "/home/perl/Work/tinycbor",
+        "file": "src/cborparser_dup_string.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-I./src",
+            "-std=gnu99",
+            "-Wall",
+            "-Wextra",
+            "-o",
+            "tools/cbordump/cbordump.o",
+            "tools/cbordump/cbordump.c"
+        ],
+        "directory": "/home/perl/Work/tinycbor",
+        "file": "tools/cbordump/cbordump.c"
+    }
+]
