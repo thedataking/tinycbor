@@ -1,9 +1,4 @@
-#![allow(
-    dead_code, mutable_transmutes, non_camel_case_types, non_snake_case, non_upper_case_globals,
-    unused_mut
-)]
-#![feature(libc)]
-extern crate libc;
+use libc;
 extern "C" {
     #[no_mangle]
     fn __assert_fail(
@@ -580,10 +575,10 @@ unsafe extern "C" fn value_to_json(
     mut type_0: CborType_0,
     mut status: *mut ConversionStatus,
 ) -> CborError_0 {
-    let mut val_1: libc::c_double = 0.;
-    let mut f: libc::c_float = 0.;
     let mut n: size_t = 0;
     let mut f16: uint16_t = 0;
+    let mut f: libc::c_float = 0.;
+    let mut val_1: libc::c_double = 0.;
     let mut current_block: u64;
     let mut err: CborError_0 = CborNoError;
     (*status).flags = 0i32;

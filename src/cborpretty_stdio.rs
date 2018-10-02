@@ -1,9 +1,4 @@
-#![allow(
-    dead_code, mutable_transmutes, non_camel_case_types, non_snake_case, non_upper_case_globals,
-    unused_mut
-)]
-#![feature(libc)]
-extern crate libc;
+use libc;
 extern "C" {
     #[no_mangle]
     fn vfprintf(_: *mut FILE, _: *const libc::c_char, _: *mut __va_list_tag) -> libc::c_int;

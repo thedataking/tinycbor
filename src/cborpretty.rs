@@ -1,9 +1,4 @@
-#![allow(
-    dead_code, mutable_transmutes, non_camel_case_types, non_snake_case, non_upper_case_globals,
-    unused_mut
-)]
-#![feature(libc, ptr_wrapping_offset_from)]
-extern crate libc;
+use libc;
 extern "C" {
     #[no_mangle]
     fn __assert_fail(
@@ -319,12 +314,12 @@ unsafe extern "C" fn value_to_pretty(
     mut flags: libc::c_int,
     mut recursionsLeft: libc::c_int,
 ) -> CborError_0 {
-    let mut ival: uint64_t = 0;
-    let mut val_1: libc::c_double = 0.;
     let mut f: libc::c_float = 0.;
-    let mut r: libc::c_int = 0;
-    let mut f16: uint16_t = 0;
     let mut suffix: *const libc::c_char = 0 as *const libc::c_char;
+    let mut f16: uint16_t = 0;
+    let mut r: libc::c_int = 0;
+    let mut val_1: libc::c_double = 0.;
+    let mut ival: uint64_t = 0;
     let mut current_block: u64;
     let mut err: CborError_0 = CborNoError;
     let mut type_0: CborType_0 = cbor_value_get_type(it);
@@ -980,11 +975,11 @@ unsafe extern "C" fn utf8EscapedDump(
                         34 | 92 => {
                             current_block = 820271813250567934;
                             match current_block {
+                                11399839508448931759 => escaped = 'n' as i32 as libc::c_uchar,
+                                9478825019186808100 => escaped = 'b' as i32 as libc::c_uchar,
                                 3145147491943146693 => escaped = 't' as i32 as libc::c_uchar,
                                 16357237710642182324 => escaped = 'r' as i32 as libc::c_uchar,
                                 15398315424185542510 => escaped = 'f' as i32 as libc::c_uchar,
-                                9478825019186808100 => escaped = 'b' as i32 as libc::c_uchar,
-                                11399839508448931759 => escaped = 'n' as i32 as libc::c_uchar,
                                 _ => {}
                             }
                             err = stream.expect("non-null function pointer")(
@@ -997,11 +992,11 @@ unsafe extern "C" fn utf8EscapedDump(
                         8 => {
                             current_block = 9478825019186808100;
                             match current_block {
+                                11399839508448931759 => escaped = 'n' as i32 as libc::c_uchar,
+                                9478825019186808100 => escaped = 'b' as i32 as libc::c_uchar,
                                 3145147491943146693 => escaped = 't' as i32 as libc::c_uchar,
                                 16357237710642182324 => escaped = 'r' as i32 as libc::c_uchar,
                                 15398315424185542510 => escaped = 'f' as i32 as libc::c_uchar,
-                                9478825019186808100 => escaped = 'b' as i32 as libc::c_uchar,
-                                11399839508448931759 => escaped = 'n' as i32 as libc::c_uchar,
                                 _ => {}
                             }
                             err = stream.expect("non-null function pointer")(
@@ -1014,11 +1009,11 @@ unsafe extern "C" fn utf8EscapedDump(
                         12 => {
                             current_block = 15398315424185542510;
                             match current_block {
+                                11399839508448931759 => escaped = 'n' as i32 as libc::c_uchar,
+                                9478825019186808100 => escaped = 'b' as i32 as libc::c_uchar,
                                 3145147491943146693 => escaped = 't' as i32 as libc::c_uchar,
                                 16357237710642182324 => escaped = 'r' as i32 as libc::c_uchar,
                                 15398315424185542510 => escaped = 'f' as i32 as libc::c_uchar,
-                                9478825019186808100 => escaped = 'b' as i32 as libc::c_uchar,
-                                11399839508448931759 => escaped = 'n' as i32 as libc::c_uchar,
                                 _ => {}
                             }
                             err = stream.expect("non-null function pointer")(
@@ -1031,11 +1026,11 @@ unsafe extern "C" fn utf8EscapedDump(
                         10 => {
                             current_block = 11399839508448931759;
                             match current_block {
+                                11399839508448931759 => escaped = 'n' as i32 as libc::c_uchar,
+                                9478825019186808100 => escaped = 'b' as i32 as libc::c_uchar,
                                 3145147491943146693 => escaped = 't' as i32 as libc::c_uchar,
                                 16357237710642182324 => escaped = 'r' as i32 as libc::c_uchar,
                                 15398315424185542510 => escaped = 'f' as i32 as libc::c_uchar,
-                                9478825019186808100 => escaped = 'b' as i32 as libc::c_uchar,
-                                11399839508448931759 => escaped = 'n' as i32 as libc::c_uchar,
                                 _ => {}
                             }
                             err = stream.expect("non-null function pointer")(
@@ -1048,11 +1043,11 @@ unsafe extern "C" fn utf8EscapedDump(
                         13 => {
                             current_block = 16357237710642182324;
                             match current_block {
+                                11399839508448931759 => escaped = 'n' as i32 as libc::c_uchar,
+                                9478825019186808100 => escaped = 'b' as i32 as libc::c_uchar,
                                 3145147491943146693 => escaped = 't' as i32 as libc::c_uchar,
                                 16357237710642182324 => escaped = 'r' as i32 as libc::c_uchar,
                                 15398315424185542510 => escaped = 'f' as i32 as libc::c_uchar,
-                                9478825019186808100 => escaped = 'b' as i32 as libc::c_uchar,
-                                11399839508448931759 => escaped = 'n' as i32 as libc::c_uchar,
                                 _ => {}
                             }
                             err = stream.expect("non-null function pointer")(
@@ -1065,11 +1060,11 @@ unsafe extern "C" fn utf8EscapedDump(
                         9 => {
                             current_block = 3145147491943146693;
                             match current_block {
+                                11399839508448931759 => escaped = 'n' as i32 as libc::c_uchar,
+                                9478825019186808100 => escaped = 'b' as i32 as libc::c_uchar,
                                 3145147491943146693 => escaped = 't' as i32 as libc::c_uchar,
                                 16357237710642182324 => escaped = 'r' as i32 as libc::c_uchar,
                                 15398315424185542510 => escaped = 'f' as i32 as libc::c_uchar,
-                                9478825019186808100 => escaped = 'b' as i32 as libc::c_uchar,
-                                11399839508448931759 => escaped = 'n' as i32 as libc::c_uchar,
                                 _ => {}
                             }
                             err = stream.expect("non-null function pointer")(

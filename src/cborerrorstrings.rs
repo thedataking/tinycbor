@@ -1,9 +1,4 @@
-#![allow(
-    dead_code, mutable_transmutes, non_camel_case_types, non_snake_case, non_upper_case_globals,
-    unused_mut
-)]
-#![feature(libc)]
-extern crate libc;
+use libc;
 pub type CborError = libc::c_int;
 /* INT_MAX on two's complement machines */
 pub const CborErrorInternalError: CborError = 2147483647;
