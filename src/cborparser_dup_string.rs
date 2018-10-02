@@ -1,11 +1,11 @@
 use libc;
 extern "C" {
     #[no_mangle]
-    fn __assert_fail(
-        __assertion: *const libc::c_char,
-        __file: *const libc::c_char,
-        __line: libc::c_uint,
-        __function: *const libc::c_char,
+    fn __assert_rtn(
+        _: *const libc::c_char,
+        _: *const libc::c_char,
+        _: libc::c_int,
+        _: *const libc::c_char,
     ) -> !;
     #[no_mangle]
     fn _cbor_value_copy_string(
@@ -15,17 +15,14 @@ extern "C" {
         next: *mut CborValue_0,
     ) -> CborError_0;
     #[no_mangle]
-    fn free(__ptr: *mut libc::c_void) -> ();
+    fn free(_: *mut libc::c_void) -> ();
     #[no_mangle]
     fn malloc(_: libc::c_ulong) -> *mut libc::c_void;
 }
 pub type size_t = libc::c_ulong;
-pub type __uint8_t = libc::c_uchar;
-pub type __uint16_t = libc::c_ushort;
-pub type __uint32_t = libc::c_uint;
-pub type uint8_t = __uint8_t;
-pub type uint16_t = __uint16_t;
-pub type uint32_t = __uint32_t;
+pub type uint8_t = libc::c_uchar;
+pub type uint16_t = libc::c_ushort;
+pub type uint32_t = libc::c_uint;
 pub type CborError = libc::c_int;
 /* INT_MAX on two's complement machines */
 pub const CborErrorInternalError: CborError = 2147483647;
@@ -101,6 +98,28 @@ pub unsafe extern "C" fn _cbor_value_dup_string(
     mut next: *mut CborValue_0,
 ) -> CborError_0 {
     let mut err: CborError_0 = CborNoError;
+    if 0 != buffer.is_null() as libc::c_int as libc::c_long {
+        __assert_rtn(
+            (*::std::mem::transmute::<&[u8; 23], &[libc::c_char; 23]>(
+                b"_cbor_value_dup_string\x00",
+            )).as_ptr(),
+            b"src/cborparser_dup_string.c\x00" as *const u8 as *const libc::c_char,
+            100i32,
+            b"buffer\x00" as *const u8 as *const libc::c_char,
+        );
+    } else {
+    };
+    if 0 != buflen.is_null() as libc::c_int as libc::c_long {
+        __assert_rtn(
+            (*::std::mem::transmute::<&[u8; 23], &[libc::c_char; 23]>(
+                b"_cbor_value_dup_string\x00",
+            )).as_ptr(),
+            b"src/cborparser_dup_string.c\x00" as *const u8 as *const libc::c_char,
+            101i32,
+            b"buflen\x00" as *const u8 as *const libc::c_char,
+        );
+    } else {
+    };
     *buflen = 18446744073709551615u64;
     err = _cbor_value_copy_string(value, 0 as *mut libc::c_void, buflen, 0 as *mut CborValue_0);
     if 0 != err as u64 {

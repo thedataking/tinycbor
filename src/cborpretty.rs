@@ -1,11 +1,11 @@
 use libc;
 extern "C" {
     #[no_mangle]
-    fn __assert_fail(
-        __assertion: *const libc::c_char,
-        __file: *const libc::c_char,
-        __line: libc::c_uint,
-        __function: *const libc::c_char,
+    fn __assert_rtn(
+        _: *const libc::c_char,
+        _: *const libc::c_char,
+        _: libc::c_int,
+        _: *const libc::c_char,
     ) -> !;
     #[no_mangle]
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
@@ -31,11 +31,11 @@ extern "C" {
     #[no_mangle]
     fn fabs(_: libc::c_double) -> libc::c_double;
     #[no_mangle]
-    fn __fpclassifyl(__value: libc::c_double) -> libc::c_int;
+    fn __fpclassifyl(_: libc::c_double) -> libc::c_int;
     #[no_mangle]
-    fn __fpclassify(__value: libc::c_double) -> libc::c_int;
+    fn __fpclassifyd(_: libc::c_double) -> libc::c_int;
     #[no_mangle]
-    fn __fpclassifyf(__value: libc::c_float) -> libc::c_int;
+    fn __fpclassifyf(_: libc::c_float) -> libc::c_int;
     #[no_mangle]
     fn ldexp(_: libc::c_double, _: libc::c_int) -> libc::c_double;
     #[no_mangle]
@@ -56,14 +56,10 @@ extern "C" {
 }
 pub type ptrdiff_t = libc::c_long;
 pub type size_t = libc::c_ulong;
-pub type __uint8_t = libc::c_uchar;
-pub type __uint16_t = libc::c_ushort;
-pub type __uint32_t = libc::c_uint;
-pub type __uint64_t = libc::c_ulong;
-pub type uint8_t = __uint8_t;
-pub type uint16_t = __uint16_t;
-pub type uint32_t = __uint32_t;
-pub type uint64_t = __uint64_t;
+pub type uint8_t = libc::c_uchar;
+pub type uint16_t = libc::c_ushort;
+pub type uint32_t = libc::c_uint;
+pub type uint64_t = libc::c_ulonglong;
 pub type CborType = libc::c_uint;
 /* equivalent to the break byte, so it will never be used */
 pub const CborInvalidType: CborType = 255;
@@ -213,7 +209,7 @@ unsafe extern "C" fn _cbor_value_extract_int64_helper(mut value: *const CborValu
     {
         _cbor_value_decode_int64_internal(value)
     } else {
-        (*value).extra as libc::c_ulong
+        (*value).extra as libc::c_ulonglong
     };
 }
 unsafe extern "C" fn cbor_value_get_type(mut value: *const CborValue_0) -> CborType_0 {
@@ -226,6 +222,17 @@ unsafe extern "C" fn cbor_value_get_boolean(
     mut value: *const CborValue_0,
     mut result: *mut bool,
 ) -> CborError_0 {
+    if 0 != !cbor_value_is_boolean(value) as libc::c_int as libc::c_long {
+        __assert_rtn(
+            (*::std::mem::transmute::<&[u8; 23], &[libc::c_char; 23]>(
+                b"cbor_value_get_boolean\x00",
+            )).as_ptr(),
+            b"./src/cbor.h\x00" as *const u8 as *const libc::c_char,
+            332i32,
+            b"cbor_value_is_boolean(value)\x00" as *const u8 as *const libc::c_char,
+        );
+    } else {
+    };
     *result = 0 != (*value).extra;
     return CborNoError;
 }
@@ -236,6 +243,17 @@ unsafe extern "C" fn cbor_value_get_simple_type(
     mut value: *const CborValue_0,
     mut result: *mut uint8_t,
 ) -> CborError_0 {
+    if 0 != !cbor_value_is_simple_type(value) as libc::c_int as libc::c_long {
+        __assert_rtn(
+            (*::std::mem::transmute::<&[u8; 27], &[libc::c_char; 27]>(
+                b"cbor_value_get_simple_type\x00",
+            )).as_ptr(),
+            b"./src/cbor.h\x00" as *const u8 as *const libc::c_char,
+            342i32,
+            b"cbor_value_is_simple_type(value)\x00" as *const u8 as *const libc::c_char,
+        );
+    } else {
+    };
     *result = (*value).extra as uint8_t;
     return CborNoError;
 }
@@ -250,6 +268,17 @@ unsafe extern "C" fn cbor_value_get_raw_integer(
     mut value: *const CborValue_0,
     mut result: *mut uint64_t,
 ) -> CborError_0 {
+    if 0 != !cbor_value_is_integer(value) as libc::c_int as libc::c_long {
+        __assert_rtn(
+            (*::std::mem::transmute::<&[u8; 27], &[libc::c_char; 27]>(
+                b"cbor_value_get_raw_integer\x00",
+            )).as_ptr(),
+            b"./src/cbor.h\x00" as *const u8 as *const libc::c_char,
+            357i32,
+            b"cbor_value_is_integer(value)\x00" as *const u8 as *const libc::c_char,
+        );
+    } else {
+    };
     *result = _cbor_value_extract_int64_helper(value);
     return CborNoError;
 }
@@ -263,6 +292,16 @@ unsafe extern "C" fn cbor_value_get_tag(
     mut value: *const CborValue_0,
     mut result: *mut CborTag,
 ) -> CborError_0 {
+    if 0 != !cbor_value_is_tag(value) as libc::c_int as libc::c_long {
+        __assert_rtn(
+            (*::std::mem::transmute::<&[u8; 19], &[libc::c_char; 19]>(b"cbor_value_get_tag\x00"))
+                .as_ptr(),
+            b"./src/cbor.h\x00" as *const u8 as *const libc::c_char,
+            398i32,
+            b"cbor_value_is_tag(value)\x00" as *const u8 as *const libc::c_char,
+        );
+    } else {
+    };
     *result = _cbor_value_extract_int64_helper(value);
     return CborNoError;
 }
@@ -274,6 +313,30 @@ unsafe extern "C" fn cbor_value_get_float(
     mut result: *mut libc::c_float,
 ) -> CborError_0 {
     let mut data: uint32_t = 0;
+    if 0 != !cbor_value_is_float(value) as libc::c_int as libc::c_long {
+        __assert_rtn(
+            (*::std::mem::transmute::<&[u8; 21], &[libc::c_char; 21]>(b"cbor_value_get_float\x00"))
+                .as_ptr(),
+            b"./src/cbor.h\x00" as *const u8 as *const libc::c_char,
+            502i32,
+            b"cbor_value_is_float(value)\x00" as *const u8 as *const libc::c_char,
+        );
+    } else {
+    };
+    if 0 != (0
+        == (*value).flags as libc::c_int & CborIteratorFlag_IntegerValueTooLarge as libc::c_int)
+        as libc::c_int as libc::c_long
+    {
+        __assert_rtn(
+            (*::std::mem::transmute::<&[u8; 21], &[libc::c_char; 21]>(b"cbor_value_get_float\x00"))
+                .as_ptr(),
+            b"./src/cbor.h\x00" as *const u8 as *const libc::c_char,
+            503i32,
+            b"value->flags & CborIteratorFlag_IntegerValueTooLarge\x00" as *const u8
+                as *const libc::c_char,
+        );
+    } else {
+    };
     data = _cbor_value_decode_int64_internal(value) as uint32_t;
     memcpy(
         result as *mut libc::c_void,
@@ -290,6 +353,32 @@ unsafe extern "C" fn cbor_value_get_double(
     mut result: *mut libc::c_double,
 ) -> CborError_0 {
     let mut data: uint64_t = 0;
+    if 0 != !cbor_value_is_double(value) as libc::c_int as libc::c_long {
+        __assert_rtn(
+            (*::std::mem::transmute::<&[u8; 22], &[libc::c_char; 22]>(
+                b"cbor_value_get_double\x00",
+            )).as_ptr(),
+            b"./src/cbor.h\x00" as *const u8 as *const libc::c_char,
+            514i32,
+            b"cbor_value_is_double(value)\x00" as *const u8 as *const libc::c_char,
+        );
+    } else {
+    };
+    if 0 != (0
+        == (*value).flags as libc::c_int & CborIteratorFlag_IntegerValueTooLarge as libc::c_int)
+        as libc::c_int as libc::c_long
+    {
+        __assert_rtn(
+            (*::std::mem::transmute::<&[u8; 22], &[libc::c_char; 22]>(
+                b"cbor_value_get_double\x00",
+            )).as_ptr(),
+            b"./src/cbor.h\x00" as *const u8 as *const libc::c_char,
+            515i32,
+            b"value->flags & CborIteratorFlag_IntegerValueTooLarge\x00" as *const u8
+                as *const libc::c_char,
+        );
+    } else {
+    };
     data = _cbor_value_decode_int64_internal(value);
     memcpy(
         result as *mut libc::c_void,
@@ -314,12 +403,12 @@ unsafe extern "C" fn value_to_pretty(
     mut flags: libc::c_int,
     mut recursionsLeft: libc::c_int,
 ) -> CborError_0 {
-    let mut f: libc::c_float = 0.;
-    let mut suffix: *const libc::c_char = 0 as *const libc::c_char;
-    let mut f16: uint16_t = 0;
-    let mut r: libc::c_int = 0;
-    let mut val_1: libc::c_double = 0.;
     let mut ival: uint64_t = 0;
+    let mut suffix: *const libc::c_char = 0 as *const libc::c_char;
+    let mut f: libc::c_float = 0.;
+    let mut r: libc::c_int = 0;
+    let mut f16: uint16_t = 0;
+    let mut val_1: libc::c_double = 0.;
     let mut current_block: u64;
     let mut err: CborError_0 = CborNoError;
     let mut type_0: CborType_0 = cbor_value_get_type(it);
@@ -400,7 +489,7 @@ unsafe extern "C" fn value_to_pretty(
             if cbor_value_is_unsigned_integer(it) {
                 err = stream.expect("non-null function pointer")(
                     out,
-                    b"%lu\x00" as *const u8 as *const libc::c_char,
+                    b"%llu\x00" as *const u8 as *const libc::c_char,
                     val,
                 )
             } else {
@@ -411,7 +500,7 @@ unsafe extern "C" fn value_to_pretty(
                     /* unsigned overflow may happen */
                     err = stream.expect("non-null function pointer")(
                         out,
-                        b"-%lu\x00" as *const u8 as *const libc::c_char,
+                        b"-%llu\x00" as *const u8 as *const libc::c_char,
                         val,
                     )
                 } else {
@@ -523,7 +612,7 @@ unsafe extern "C" fn value_to_pretty(
             cbor_value_get_tag(it, &mut tag);
             err = stream.expect("non-null function pointer")(
                 out,
-                b"%lu%s(\x00" as *const u8 as *const libc::c_char,
+                b"%llu%s(\x00" as *const u8 as *const libc::c_char,
                 tag,
                 get_indicator(it, flags),
             );
@@ -549,7 +638,7 @@ unsafe extern "C" fn value_to_pretty(
             cbor_value_get_simple_type(it, &mut simple_type);
             err = stream.expect("non-null function pointer")(
                 out,
-                b"simple(%u)\x00" as *const u8 as *const libc::c_char,
+                b"simple(%hhu)\x00" as *const u8 as *const libc::c_char,
                 simple_type as libc::c_int,
             );
             current_block = 9386390421034826751;
@@ -636,11 +725,11 @@ unsafe extern "C" fn value_to_pretty(
                 } else if ::std::mem::size_of::<libc::c_double>() as libc::c_ulong
                     == ::std::mem::size_of::<libc::c_double>() as libc::c_ulong
                 {
-                    __fpclassify(val_1)
+                    __fpclassifyd(val_1)
                 } else {
                     __fpclassifyl(val_1 as libc::c_double)
                 };
-                if r == 0i32 || r == 1i32 {
+                if r == 1i32 || r == 2i32 {
                     suffix = b"\x00" as *const u8 as *const libc::c_char
                 }
             }
@@ -649,7 +738,7 @@ unsafe extern "C" fn value_to_pretty(
                  * (followed by a floating point suffix, to disambiguate) */
                 err = stream.expect("non-null function pointer")(
                     out,
-                    b"%s%lu.%s\x00" as *const u8 as *const libc::c_char,
+                    b"%s%llu.%s\x00" as *const u8 as *const libc::c_char,
                     if val_1 < 0i32 as libc::c_double {
                         b"-\x00" as *const u8 as *const libc::c_char
                     } else {
@@ -823,7 +912,7 @@ unsafe extern "C" fn convertToUint64(mut v: libc::c_double, mut absolute: *mut u
      *    value, chosen in an implementation-defined manner.
      */
     /* -2 * (- 2^63) == 2^64 */
-    supremum = -2.0f64 * (-9223372036854775807i64 - 1i32 as libc::c_long) as libc::c_double;
+    supremum = -2.0f64 * (-9223372036854775807i64 - 1i32 as libc::c_longlong) as libc::c_double;
     if v >= supremum {
         return 0 != 0i32;
     } else {
@@ -914,16 +1003,16 @@ unsafe extern "C" fn resolve_indicator(
                 return 0 as *const libc::c_char;
             } else {
                 expected_information = (Value8Bit as libc::c_int - 1i32) as uint8_t;
-                if value >= Value8Bit as libc::c_int as libc::c_ulong {
+                if value >= Value8Bit as libc::c_int as libc::c_ulonglong {
                     expected_information = expected_information.wrapping_add(1)
                 }
-                if value > 0xffu32 as libc::c_ulong {
+                if value > 0xffu32 as libc::c_ulonglong {
                     expected_information = expected_information.wrapping_add(1)
                 }
-                if value > 0xffffu32 as libc::c_ulong {
+                if value > 0xffffu32 as libc::c_ulonglong {
                     expected_information = expected_information.wrapping_add(1)
                 }
-                if value > 0xffffffffu32 as libc::c_ulong {
+                if value > 0xffffffffu32 as libc::c_ulonglong {
                     expected_information = expected_information.wrapping_add(1)
                 }
                 return if expected_information as libc::c_int
@@ -975,11 +1064,11 @@ unsafe extern "C" fn utf8EscapedDump(
                         34 | 92 => {
                             current_block = 820271813250567934;
                             match current_block {
-                                11399839508448931759 => escaped = 'n' as i32 as libc::c_uchar,
-                                9478825019186808100 => escaped = 'b' as i32 as libc::c_uchar,
-                                3145147491943146693 => escaped = 't' as i32 as libc::c_uchar,
-                                16357237710642182324 => escaped = 'r' as i32 as libc::c_uchar,
-                                15398315424185542510 => escaped = 'f' as i32 as libc::c_uchar,
+                                15406670416841790907 => escaped = 'b' as i32 as libc::c_uchar,
+                                12275382707489007217 => escaped = 'n' as i32 as libc::c_uchar,
+                                12869009347971074526 => escaped = 't' as i32 as libc::c_uchar,
+                                13935456465286830489 => escaped = 'f' as i32 as libc::c_uchar,
+                                13065623900529505543 => escaped = 'r' as i32 as libc::c_uchar,
                                 _ => {}
                             }
                             err = stream.expect("non-null function pointer")(
@@ -990,13 +1079,13 @@ unsafe extern "C" fn utf8EscapedDump(
                             continue;
                         }
                         8 => {
-                            current_block = 9478825019186808100;
+                            current_block = 15406670416841790907;
                             match current_block {
-                                11399839508448931759 => escaped = 'n' as i32 as libc::c_uchar,
-                                9478825019186808100 => escaped = 'b' as i32 as libc::c_uchar,
-                                3145147491943146693 => escaped = 't' as i32 as libc::c_uchar,
-                                16357237710642182324 => escaped = 'r' as i32 as libc::c_uchar,
-                                15398315424185542510 => escaped = 'f' as i32 as libc::c_uchar,
+                                15406670416841790907 => escaped = 'b' as i32 as libc::c_uchar,
+                                12275382707489007217 => escaped = 'n' as i32 as libc::c_uchar,
+                                12869009347971074526 => escaped = 't' as i32 as libc::c_uchar,
+                                13935456465286830489 => escaped = 'f' as i32 as libc::c_uchar,
+                                13065623900529505543 => escaped = 'r' as i32 as libc::c_uchar,
                                 _ => {}
                             }
                             err = stream.expect("non-null function pointer")(
@@ -1007,13 +1096,13 @@ unsafe extern "C" fn utf8EscapedDump(
                             continue;
                         }
                         12 => {
-                            current_block = 15398315424185542510;
+                            current_block = 13935456465286830489;
                             match current_block {
-                                11399839508448931759 => escaped = 'n' as i32 as libc::c_uchar,
-                                9478825019186808100 => escaped = 'b' as i32 as libc::c_uchar,
-                                3145147491943146693 => escaped = 't' as i32 as libc::c_uchar,
-                                16357237710642182324 => escaped = 'r' as i32 as libc::c_uchar,
-                                15398315424185542510 => escaped = 'f' as i32 as libc::c_uchar,
+                                15406670416841790907 => escaped = 'b' as i32 as libc::c_uchar,
+                                12275382707489007217 => escaped = 'n' as i32 as libc::c_uchar,
+                                12869009347971074526 => escaped = 't' as i32 as libc::c_uchar,
+                                13935456465286830489 => escaped = 'f' as i32 as libc::c_uchar,
+                                13065623900529505543 => escaped = 'r' as i32 as libc::c_uchar,
                                 _ => {}
                             }
                             err = stream.expect("non-null function pointer")(
@@ -1024,13 +1113,13 @@ unsafe extern "C" fn utf8EscapedDump(
                             continue;
                         }
                         10 => {
-                            current_block = 11399839508448931759;
+                            current_block = 12275382707489007217;
                             match current_block {
-                                11399839508448931759 => escaped = 'n' as i32 as libc::c_uchar,
-                                9478825019186808100 => escaped = 'b' as i32 as libc::c_uchar,
-                                3145147491943146693 => escaped = 't' as i32 as libc::c_uchar,
-                                16357237710642182324 => escaped = 'r' as i32 as libc::c_uchar,
-                                15398315424185542510 => escaped = 'f' as i32 as libc::c_uchar,
+                                15406670416841790907 => escaped = 'b' as i32 as libc::c_uchar,
+                                12275382707489007217 => escaped = 'n' as i32 as libc::c_uchar,
+                                12869009347971074526 => escaped = 't' as i32 as libc::c_uchar,
+                                13935456465286830489 => escaped = 'f' as i32 as libc::c_uchar,
+                                13065623900529505543 => escaped = 'r' as i32 as libc::c_uchar,
                                 _ => {}
                             }
                             err = stream.expect("non-null function pointer")(
@@ -1041,13 +1130,13 @@ unsafe extern "C" fn utf8EscapedDump(
                             continue;
                         }
                         13 => {
-                            current_block = 16357237710642182324;
+                            current_block = 13065623900529505543;
                             match current_block {
-                                11399839508448931759 => escaped = 'n' as i32 as libc::c_uchar,
-                                9478825019186808100 => escaped = 'b' as i32 as libc::c_uchar,
-                                3145147491943146693 => escaped = 't' as i32 as libc::c_uchar,
-                                16357237710642182324 => escaped = 'r' as i32 as libc::c_uchar,
-                                15398315424185542510 => escaped = 'f' as i32 as libc::c_uchar,
+                                15406670416841790907 => escaped = 'b' as i32 as libc::c_uchar,
+                                12275382707489007217 => escaped = 'n' as i32 as libc::c_uchar,
+                                12869009347971074526 => escaped = 't' as i32 as libc::c_uchar,
+                                13935456465286830489 => escaped = 'f' as i32 as libc::c_uchar,
+                                13065623900529505543 => escaped = 'r' as i32 as libc::c_uchar,
                                 _ => {}
                             }
                             err = stream.expect("non-null function pointer")(
@@ -1058,13 +1147,13 @@ unsafe extern "C" fn utf8EscapedDump(
                             continue;
                         }
                         9 => {
-                            current_block = 3145147491943146693;
+                            current_block = 12869009347971074526;
                             match current_block {
-                                11399839508448931759 => escaped = 'n' as i32 as libc::c_uchar,
-                                9478825019186808100 => escaped = 'b' as i32 as libc::c_uchar,
-                                3145147491943146693 => escaped = 't' as i32 as libc::c_uchar,
-                                16357237710642182324 => escaped = 'r' as i32 as libc::c_uchar,
-                                15398315424185542510 => escaped = 'f' as i32 as libc::c_uchar,
+                                15406670416841790907 => escaped = 'b' as i32 as libc::c_uchar,
+                                12275382707489007217 => escaped = 'n' as i32 as libc::c_uchar,
+                                12869009347971074526 => escaped = 't' as i32 as libc::c_uchar,
+                                13935456465286830489 => escaped = 'f' as i32 as libc::c_uchar,
+                                13065623900529505543 => escaped = 'r' as i32 as libc::c_uchar,
                                 _ => {}
                             }
                             err = stream.expect("non-null function pointer")(
@@ -1229,7 +1318,7 @@ unsafe extern "C" fn hexDump(
         buffer = buffer.offset(1);
         err = stream.expect("non-null function pointer")(
             out,
-            b"%02x\x00" as *const u8 as *const libc::c_char,
+            b"%02hhx\x00" as *const u8 as *const libc::c_char,
             *fresh5 as libc::c_int,
         )
     }

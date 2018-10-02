@@ -1,27 +1,22 @@
 use libc;
 extern "C" {
     #[no_mangle]
-    fn __assert_fail(
-        __assertion: *const libc::c_char,
-        __file: *const libc::c_char,
-        __line: libc::c_uint,
-        __function: *const libc::c_char,
+    fn __assert_rtn(
+        _: *const libc::c_char,
+        _: *const libc::c_char,
+        _: libc::c_int,
+        _: *const libc::c_char,
     ) -> !;
     #[no_mangle]
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
 }
 pub type ptrdiff_t = libc::c_long;
 pub type size_t = libc::c_ulong;
-pub type __uint8_t = libc::c_uchar;
-pub type __uint16_t = libc::c_ushort;
-pub type __uint32_t = libc::c_uint;
-pub type __int64_t = libc::c_long;
-pub type __uint64_t = libc::c_ulong;
-pub type int64_t = __int64_t;
-pub type uint8_t = __uint8_t;
-pub type uint16_t = __uint16_t;
-pub type uint32_t = __uint32_t;
-pub type uint64_t = __uint64_t;
+pub type int64_t = libc::c_longlong;
+pub type uint8_t = libc::c_uchar;
+pub type uint16_t = libc::c_ushort;
+pub type uint32_t = libc::c_uint;
+pub type uint64_t = libc::c_ulonglong;
 pub type CborType = libc::c_uint;
 /* equivalent to the break byte, so it will never be used */
 pub const CborInvalidType: CborType = 255;
@@ -219,17 +214,17 @@ unsafe extern "C" fn encode_number_no_update(
     let mut bufstart: *mut uint8_t = bufend.offset(-1isize);
     /* we probably have a bunch of zeros in the beginning */
     put64(buf.as_mut_ptr().offset(1isize) as *mut libc::c_void, ui);
-    if ui < Value8Bit as libc::c_int as libc::c_ulong {
+    if ui < Value8Bit as libc::c_int as libc::c_ulonglong {
         *bufstart = (*bufstart as libc::c_int + shiftedMajorType as libc::c_int) as uint8_t
     } else {
         let mut more: uint8_t = 0i32 as uint8_t;
-        if ui > 0xffu32 as libc::c_ulong {
+        if ui > 0xffu32 as libc::c_ulonglong {
             more = more.wrapping_add(1)
         }
-        if ui > 0xffffu32 as libc::c_ulong {
+        if ui > 0xffffu32 as libc::c_ulonglong {
             more = more.wrapping_add(1)
         }
-        if ui > 0xffffffffu32 as libc::c_ulong {
+        if ui > 0xffffffffu32 as libc::c_ulonglong {
             more = more.wrapping_add(1)
         }
         bufstart = bufstart.offset(-(((1i32 as size_t) << more as libc::c_int) as isize));
@@ -283,7 +278,7 @@ unsafe extern "C" fn would_overflow(mut encoder: *mut CborEncoder_0, mut len: si
     return 0 != (remaining < 0i32 as libc::c_long) as libc::c_int as libc::c_long;
 }
 unsafe extern "C" fn put64(mut where_0: *mut libc::c_void, mut v: uint64_t) -> () {
-    v = (v as libc::c_ulonglong).swap_bytes() as uint64_t;
+    v = v.swap_bytes();
     memcpy(
         where_0,
         &mut v as *mut uint64_t as *const libc::c_void,
@@ -304,9 +299,9 @@ pub unsafe extern "C" fn cbor_encode_int(
     /* extend sign to whole length */
     let mut ui: uint64_t = (value >> 63i32) as uint64_t;
     /* extract major type */
-    let mut majorType: uint8_t = (ui & 0x20i32 as libc::c_ulong) as uint8_t;
+    let mut majorType: uint8_t = (ui & 0x20i32 as libc::c_ulonglong) as uint8_t;
     /* complement negatives */
-    ui ^= value as libc::c_ulong;
+    ui ^= value as libc::c_ulonglong;
     return encode_number(encoder, ui, majorType);
 }
 #[no_mangle]
@@ -316,7 +311,7 @@ pub unsafe extern "C" fn cbor_encode_negative_int(
 ) -> CborError_0 {
     return encode_number(
         encoder,
-        absolute_value.wrapping_sub(1i32 as libc::c_ulong),
+        absolute_value.wrapping_sub(1i32 as libc::c_ulonglong),
         ((NegativeIntegerType as libc::c_int) << MajorTypeShift as libc::c_int) as uint8_t,
     );
 }
@@ -369,7 +364,7 @@ unsafe extern "C" fn encode_string(
     mut shiftedMajorType: uint8_t,
     mut string: *const libc::c_void,
 ) -> CborError_0 {
-    let mut err: CborError_0 = encode_number(encoder, length, shiftedMajorType);
+    let mut err: CborError_0 = encode_number(encoder, length as uint64_t, shiftedMajorType);
     if 0 != err as libc::c_int && !isOomError(err) {
         return err;
     } else {
@@ -405,6 +400,19 @@ pub unsafe extern "C" fn cbor_encode_floating_point(
 ) -> CborError_0 {
     let mut size: libc::c_uint = 0;
     let mut buf: [uint8_t; 9] = [0; 9];
+    if 0 != !(fpType as libc::c_uint == CborHalfFloatType as libc::c_int as libc::c_uint
+        || fpType as libc::c_uint == CborFloatType as libc::c_int as libc::c_uint
+        || fpType as libc::c_uint == CborDoubleType as libc::c_int as libc::c_uint)
+        as libc::c_int as libc::c_long
+    {
+        __assert_rtn((*::std::mem::transmute::<&[u8; 27],
+                                               &[libc::c_char; 27]>(b"cbor_encode_floating_point\x00")).as_ptr(),
+                     b"src/cborencoder.c\x00" as *const u8 as
+                         *const libc::c_char, 391i32,
+                     b"fpType == CborHalfFloatType || fpType == CborFloatType || fpType == CborDoubleType\x00"
+                         as *const u8 as *const libc::c_char);
+    } else {
+    };
     buf[0usize] = fpType as uint8_t;
     size = 2u32
         << (fpType as libc::c_uint).wrapping_sub(CborHalfFloatType as libc::c_int as libc::c_uint);
@@ -485,7 +493,7 @@ unsafe extern "C" fn create_container(
             (*container).remaining =
                 ((*container).remaining as libc::c_ulong).wrapping_add(length) as size_t as size_t
         }
-        err = encode_number_no_update(container, length, shiftedMajorType)
+        err = encode_number_no_update(container, length as uint64_t, shiftedMajorType)
     }
     return err;
 }

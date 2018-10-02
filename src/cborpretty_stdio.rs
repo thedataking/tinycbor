@@ -1,5 +1,6 @@
 use libc;
 extern "C" {
+    pub type __sFILEX;
     #[no_mangle]
     fn vfprintf(_: *mut FILE, _: *const libc::c_char, _: *mut __va_list_tag) -> libc::c_int;
     #[no_mangle]
@@ -19,58 +20,52 @@ pub struct __va_list_tag {
     pub overflow_arg_area: *mut libc::c_void,
     pub reg_save_area: *mut libc::c_void,
 }
-pub type size_t = libc::c_ulong;
-pub type __uint8_t = libc::c_uchar;
-pub type __uint16_t = libc::c_ushort;
-pub type __uint32_t = libc::c_uint;
-pub type __off_t = libc::c_long;
-pub type __off64_t = libc::c_long;
-pub type uint8_t = __uint8_t;
-pub type uint16_t = __uint16_t;
-pub type uint32_t = __uint32_t;
+pub type uint8_t = libc::c_uchar;
+pub type uint16_t = libc::c_ushort;
+pub type uint32_t = libc::c_uint;
+pub type __int64_t = libc::c_longlong;
+pub type __darwin_va_list = __builtin_va_list;
+pub type __darwin_off_t = __int64_t;
+pub type va_list = __darwin_va_list;
+pub type fpos_t = __darwin_off_t;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct _IO_FILE {
-    pub _flags: libc::c_int,
-    pub _IO_read_ptr: *mut libc::c_char,
-    pub _IO_read_end: *mut libc::c_char,
-    pub _IO_read_base: *mut libc::c_char,
-    pub _IO_write_base: *mut libc::c_char,
-    pub _IO_write_ptr: *mut libc::c_char,
-    pub _IO_write_end: *mut libc::c_char,
-    pub _IO_buf_base: *mut libc::c_char,
-    pub _IO_buf_end: *mut libc::c_char,
-    pub _IO_save_base: *mut libc::c_char,
-    pub _IO_backup_base: *mut libc::c_char,
-    pub _IO_save_end: *mut libc::c_char,
-    pub _markers: *mut _IO_marker,
-    pub _chain: *mut _IO_FILE,
-    pub _fileno: libc::c_int,
-    pub _flags2: libc::c_int,
-    pub _old_offset: __off_t,
-    pub _cur_column: libc::c_ushort,
-    pub _vtable_offset: libc::c_schar,
-    pub _shortbuf: [libc::c_char; 1],
-    pub _lock: *mut libc::c_void,
-    pub _offset: __off64_t,
-    pub __pad1: *mut libc::c_void,
-    pub __pad2: *mut libc::c_void,
-    pub __pad3: *mut libc::c_void,
-    pub __pad4: *mut libc::c_void,
-    pub __pad5: size_t,
-    pub _mode: libc::c_int,
-    pub _unused2: [libc::c_char; 20],
+pub struct __sbuf {
+    pub _base: *mut libc::c_uchar,
+    pub _size: libc::c_int,
 }
-pub type _IO_lock_t = ();
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct _IO_marker {
-    pub _next: *mut _IO_marker,
-    pub _sbuf: *mut _IO_FILE,
-    pub _pos: libc::c_int,
+pub struct __sFILE {
+    pub _p: *mut libc::c_uchar,
+    pub _r: libc::c_int,
+    pub _w: libc::c_int,
+    pub _flags: libc::c_short,
+    pub _file: libc::c_short,
+    pub _bf: __sbuf,
+    pub _lbfsize: libc::c_int,
+    pub _cookie: *mut libc::c_void,
+    pub _close: Option<unsafe extern "C" fn(_: *mut libc::c_void) -> libc::c_int>,
+    pub _read: Option<
+        unsafe extern "C" fn(_: *mut libc::c_void, _: *mut libc::c_char, _: libc::c_int)
+            -> libc::c_int,
+    >,
+    pub _seek:
+        Option<unsafe extern "C" fn(_: *mut libc::c_void, _: fpos_t, _: libc::c_int) -> fpos_t>,
+    pub _write: Option<
+        unsafe extern "C" fn(_: *mut libc::c_void, _: *const libc::c_char, _: libc::c_int)
+            -> libc::c_int,
+    >,
+    pub _ub: __sbuf,
+    pub _extra: *mut __sFILEX,
+    pub _ur: libc::c_int,
+    pub _ubuf: [libc::c_uchar; 3],
+    pub _nbuf: [libc::c_uchar; 1],
+    pub _lb: __sbuf,
+    pub _blksize: libc::c_int,
+    pub _offset: fpos_t,
 }
-pub type FILE = _IO_FILE;
-pub type va_list = __builtin_va_list;
+pub type FILE = __sFILE;
 pub type CborError = libc::c_int;
 /* INT_MAX on two's complement machines */
 pub const CborErrorInternalError: CborError = 2147483647;

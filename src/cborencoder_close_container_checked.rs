@@ -8,8 +8,7 @@ extern "C" {
 }
 pub type ptrdiff_t = libc::c_long;
 pub type size_t = libc::c_ulong;
-pub type __uint8_t = libc::c_uchar;
-pub type uint8_t = __uint8_t;
+pub type uint8_t = libc::c_uchar;
 pub type CborError = libc::c_int;
 /* INT_MAX on two's complement machines */
 pub const CborErrorInternalError: CborError = 2147483647;

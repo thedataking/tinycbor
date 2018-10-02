@@ -1,29 +1,35 @@
 use libc;
 extern "C" {
+    pub type __sFILEX;
     #[no_mangle]
     fn strerror(_: libc::c_int) -> *mut libc::c_char;
     #[no_mangle]
-    static mut stdin: *mut _IO_FILE;
+    static mut __stdinp: *mut FILE;
     #[no_mangle]
-    static mut stdout: *mut _IO_FILE;
+    static mut __stdoutp: *mut FILE;
     #[no_mangle]
-    static mut stderr: *mut _IO_FILE;
+    static mut __stderrp: *mut FILE;
     #[no_mangle]
-    fn fclose(__stream: *mut FILE) -> libc::c_int;
+    fn fclose(_: *mut FILE) -> libc::c_int;
     #[no_mangle]
-    fn fopen(__filename: *const libc::c_char, __modes: *const libc::c_char) -> *mut FILE;
+    fn feof(_: *mut FILE) -> libc::c_int;
+    #[no_mangle]
+    fn ferror(_: *mut FILE) -> libc::c_int;
+    #[no_mangle]
+    fn fopen(__filename: *const libc::c_char, __mode: *const libc::c_char) -> *mut FILE;
     #[no_mangle]
     fn fprintf(_: *mut FILE, _: *const libc::c_char, ...) -> libc::c_int;
     #[no_mangle]
-    fn puts(__s: *const libc::c_char) -> libc::c_int;
+    fn fread(
+        __ptr: *mut libc::c_void,
+        __size: size_t,
+        __nitems: size_t,
+        __stream: *mut FILE,
+    ) -> size_t;
     #[no_mangle]
-    fn fread(__ptr: *mut libc::c_void, __size: size_t, __n: size_t, __stream: *mut FILE) -> size_t;
+    fn perror(_: *const libc::c_char) -> ();
     #[no_mangle]
-    fn feof(__stream: *mut FILE) -> libc::c_int;
-    #[no_mangle]
-    fn ferror(__stream: *mut FILE) -> libc::c_int;
-    #[no_mangle]
-    fn perror(__s: *const libc::c_char) -> ();
+    fn puts(_: *const libc::c_char) -> libc::c_int;
     #[no_mangle]
     fn cbor_error_string(error: CborError_0) -> *const libc::c_char;
     #[no_mangle]
@@ -48,73 +54,63 @@ extern "C" {
         flags: libc::c_int,
     ) -> CborError_0;
     #[no_mangle]
-    fn __errno_location() -> *mut libc::c_int;
+    fn __error() -> *mut libc::c_int;
     #[no_mangle]
     fn realloc(_: *mut libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
     #[no_mangle]
     fn exit(_: libc::c_int) -> !;
     #[no_mangle]
+    fn getopt(_: libc::c_int, _: *const *mut libc::c_char, _: *const libc::c_char) -> libc::c_int;
+    #[no_mangle]
     static mut optind: libc::c_int;
     #[no_mangle]
     static mut optopt: libc::c_int;
-    #[no_mangle]
-    fn getopt(
-        ___argc: libc::c_int,
-        ___argv: *const *mut libc::c_char,
-        __shortopts: *const libc::c_char,
-    ) -> libc::c_int;
 }
 pub type size_t = libc::c_ulong;
-pub type __uint8_t = libc::c_uchar;
-pub type __uint16_t = libc::c_ushort;
-pub type __uint32_t = libc::c_uint;
-pub type __off_t = libc::c_long;
-pub type __off64_t = libc::c_long;
-pub type uint8_t = __uint8_t;
-pub type uint16_t = __uint16_t;
-pub type uint32_t = __uint32_t;
+pub type uint8_t = libc::c_uchar;
+pub type uint16_t = libc::c_ushort;
+pub type uint32_t = libc::c_uint;
+pub type __int64_t = libc::c_longlong;
+pub type __darwin_off_t = __int64_t;
+pub type fpos_t = __darwin_off_t;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct _IO_FILE {
-    pub _flags: libc::c_int,
-    pub _IO_read_ptr: *mut libc::c_char,
-    pub _IO_read_end: *mut libc::c_char,
-    pub _IO_read_base: *mut libc::c_char,
-    pub _IO_write_base: *mut libc::c_char,
-    pub _IO_write_ptr: *mut libc::c_char,
-    pub _IO_write_end: *mut libc::c_char,
-    pub _IO_buf_base: *mut libc::c_char,
-    pub _IO_buf_end: *mut libc::c_char,
-    pub _IO_save_base: *mut libc::c_char,
-    pub _IO_backup_base: *mut libc::c_char,
-    pub _IO_save_end: *mut libc::c_char,
-    pub _markers: *mut _IO_marker,
-    pub _chain: *mut _IO_FILE,
-    pub _fileno: libc::c_int,
-    pub _flags2: libc::c_int,
-    pub _old_offset: __off_t,
-    pub _cur_column: libc::c_ushort,
-    pub _vtable_offset: libc::c_schar,
-    pub _shortbuf: [libc::c_char; 1],
-    pub _lock: *mut libc::c_void,
-    pub _offset: __off64_t,
-    pub __pad1: *mut libc::c_void,
-    pub __pad2: *mut libc::c_void,
-    pub __pad3: *mut libc::c_void,
-    pub __pad4: *mut libc::c_void,
-    pub __pad5: size_t,
-    pub _mode: libc::c_int,
-    pub _unused2: [libc::c_char; 20],
+pub struct __sbuf {
+    pub _base: *mut libc::c_uchar,
+    pub _size: libc::c_int,
 }
-pub type _IO_lock_t = ();
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct _IO_marker {
-    pub _next: *mut _IO_marker,
-    pub _sbuf: *mut _IO_FILE,
-    pub _pos: libc::c_int,
+pub struct __sFILE {
+    pub _p: *mut libc::c_uchar,
+    pub _r: libc::c_int,
+    pub _w: libc::c_int,
+    pub _flags: libc::c_short,
+    pub _file: libc::c_short,
+    pub _bf: __sbuf,
+    pub _lbfsize: libc::c_int,
+    pub _cookie: *mut libc::c_void,
+    pub _close: Option<unsafe extern "C" fn(_: *mut libc::c_void) -> libc::c_int>,
+    pub _read: Option<
+        unsafe extern "C" fn(_: *mut libc::c_void, _: *mut libc::c_char, _: libc::c_int)
+            -> libc::c_int,
+    >,
+    pub _seek:
+        Option<unsafe extern "C" fn(_: *mut libc::c_void, _: fpos_t, _: libc::c_int) -> fpos_t>,
+    pub _write: Option<
+        unsafe extern "C" fn(_: *mut libc::c_void, _: *const libc::c_char, _: libc::c_int)
+            -> libc::c_int,
+    >,
+    pub _ub: __sbuf,
+    pub _extra: *mut __sFILEX,
+    pub _ur: libc::c_int,
+    pub _ubuf: [libc::c_uchar; 3],
+    pub _nbuf: [libc::c_uchar; 1],
+    pub _lb: __sbuf,
+    pub _blksize: libc::c_int,
+    pub _offset: fpos_t,
 }
-pub type FILE = _IO_FILE;
+pub type FILE = __sFILE;
 pub type CborError = libc::c_int;
 /* INT_MAX on two's complement machines */
 pub const CborErrorInternalError: CborError = 2147483647;
@@ -258,10 +254,10 @@ pub unsafe extern "C" fn xrealloc(
     old = realloc(old, size);
     if old.is_null() {
         fprintf(
-            stderr,
+            __stderrp,
             b"%s: %s\n\x00" as *const u8 as *const libc::c_char,
             fname,
-            strerror(*__errno_location()),
+            strerror(*__error()),
         );
         exit(1i32);
     } else {
@@ -271,7 +267,7 @@ pub unsafe extern "C" fn xrealloc(
 #[no_mangle]
 pub unsafe extern "C" fn printerror(mut err: CborError_0, mut fname: *const libc::c_char) -> () {
     fprintf(
-        stderr,
+        __stderrp,
         b"%s: %s\n\x00" as *const u8 as *const libc::c_char,
         fname,
         cbor_error_string(err),
@@ -304,10 +300,10 @@ pub unsafe extern "C" fn dumpFile(
         if n == 0i32 as libc::c_ulong {
             if !(0 == ferror(in_0)) {
                 fprintf(
-                    stderr,
+                    __stderrp,
                     b"%s: %s\n\x00" as *const u8 as *const libc::c_char,
                     fname,
-                    strerror(*__errno_location()),
+                    strerror(*__error()),
                 );
                 exit(1i32);
             }
@@ -332,9 +328,9 @@ pub unsafe extern "C" fn dumpFile(
         cbor_parser_init(buffer, buflen, 0i32 as uint32_t, &mut parser, &mut value);
     if 0 == err as u64 {
         if printJosn {
-            err = cbor_value_to_json_advance(stdout, &mut value, flags)
+            err = cbor_value_to_json_advance(__stdoutp, &mut value, flags)
         } else {
-            err = cbor_value_to_pretty_advance_flags(stdout, &mut value, flags)
+            err = cbor_value_to_pretty_advance_flags(__stdoutp, &mut value, flags)
         }
         if 0 == err as u64 {
             puts(b"\x00" as *const u8 as *const libc::c_char);
@@ -355,7 +351,7 @@ unsafe fn main_0(mut argc: libc::c_int, mut argv: *mut *mut libc::c_char) -> lib
     loop {
         c = getopt(
             argc,
-            argv,
+            argv as *const *mut libc::c_char,
             b"MOSUcjhfn\x00" as *const u8 as *const libc::c_char,
         );
         if !(c != -1i32) {
@@ -397,7 +393,7 @@ unsafe fn main_0(mut argc: libc::c_int, mut argv: *mut *mut libc::c_char) -> lib
             }
             63 => {
                 fprintf(
-                    stderr,
+                    __stderrp,
                     b"Unknown option -%c.\n\x00" as *const u8 as *const libc::c_char,
                     optopt,
                 );
@@ -415,7 +411,7 @@ unsafe fn main_0(mut argc: libc::c_int, mut argv: *mut *mut libc::c_char) -> lib
     let mut fname: *mut *mut libc::c_char = argv.offset(optind as isize);
     if (*fname).is_null() {
         dumpFile(
-            stdin,
+            __stdinp,
             b"-\x00" as *const u8 as *const libc::c_char,
             printJson,
             if 0 != printJson as libc::c_int {
