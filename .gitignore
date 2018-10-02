@@ -85,3 +85,5 @@ src/doxygen.log
 .vscode
 # C2rust intermediary files
 *.c.cbor
+# compile commands database
+**/compile_commands.json
