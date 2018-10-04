@@ -220,11 +220,11 @@ static CborError generic_dump_base64(char **result, CborValue *it, const char al
     for (i = 0; n - i >= 3; i += 3) {
         /* read 3 bytes x 8 bits = 24 bits */
         if (false) {
-#ifdef __GNUC__
-        } else if (i) {
-            __builtin_memcpy(&val, in + i - 1, sizeof(val));
-            val = cbor_ntohl(val);
-#endif
+//#ifdef __GNUC__
+//        } else if (i) {
+//            __builtin_memcpy(&val, in + i - 1, sizeof(val));
+//            val = cbor_ntohl(val);
+//#endif
         } else {
             val = (in[i] << 16) | (in[i + 1] << 8) | in[i + 2];
         }
@@ -240,11 +240,11 @@ static CborError generic_dump_base64(char **result, CborValue *it, const char al
     if (n - i) {
         /* we can read in[i + 1] even if it's past the end of the string because
          * we know (by construction) that it's a NUL byte */
-#ifdef __GNUC__
-        uint16_t val16;
-        __builtin_memcpy(&val16, in + i, sizeof(val16));
-        val = cbor_ntohs(val16);
-#else
+//#ifdef __GNUC__
+//        uint16_t val16;
+//        __builtin_memcpy(&val16, in + i, sizeof(val16));
+//        val = cbor_ntohs(val16);
+//#else
         val = (in[i] << 8) | in[i + 1];
 #endif
         val <<= 8;
