@@ -246,7 +246,7 @@ static CborError generic_dump_base64(char **result, CborValue *it, const char al
 //        val = cbor_ntohs(val16);
 //#else
         val = (in[i] << 8) | in[i + 1];
-#endif
+//#endif
         val <<= 8;
 
         /* the 65th character in the alphabet is our filler: either '=' or '\0' */
