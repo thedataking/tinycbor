@@ -693,10 +693,10 @@ unsafe extern "C" fn value_to_json(
     mut type_0: CborType_0,
     mut status: *mut ConversionStatus,
 ) -> CborError_0 {
-    let mut f: libc::c_float = 0.;
-    let mut n: size_t = 0;
     let mut val_1: libc::c_double = 0.;
     let mut f16: uint16_t = 0;
+    let mut n: size_t = 0;
+    let mut f: libc::c_float = 0.;
     let mut current_block: u64;
     let mut err: CborError_0 = CborNoError;
     (*status).flags = 0i32;
@@ -1131,6 +1131,110 @@ unsafe extern "C" fn dump_bytestring_base64(
         ]
     };
     return generic_dump_base64(result, it, alphabet.as_ptr());
+}
+unsafe extern "C" fn generic_dump_base64(
+    mut result: *mut *mut libc::c_char,
+    mut it: *mut CborValue_0,
+    mut alphabet: *const libc::c_char,
+) -> CborError_0 {
+    let mut n: size_t = 0i32 as size_t;
+    let mut i: size_t = 0;
+    let mut buffer: *mut uint8_t = 0 as *mut uint8_t;
+    let mut out: *mut uint8_t = 0 as *mut uint8_t;
+    let mut in_0: *mut uint8_t = 0 as *mut uint8_t;
+    let mut err: CborError_0 = cbor_value_calculate_string_length(it, &mut n);
+    if 0 != err as u64 {
+        return err;
+    } else {
+        /* a Base64 output (untruncated) has 4 bytes for every 3 in the input */
+        let mut len: size_t = n
+            .wrapping_add(5i32 as libc::c_ulong)
+            .wrapping_div(3i32 as libc::c_ulong)
+            .wrapping_mul(4i32 as libc::c_ulong);
+        buffer = malloc(len.wrapping_add(1i32 as libc::c_ulong)) as *mut uint8_t;
+        out = buffer;
+        *result = buffer as *mut libc::c_char;
+        /* we read our byte string at the tail end of the buffer
+         * so we can do an in-place conversion while iterating forwards */
+        in_0 = buffer.offset(len as isize).offset(-(n as isize));
+        /* let cbor_value_copy_byte_string know we have an extra byte for the terminating NUL */
+        n = n.wrapping_add(1);
+        err = cbor_value_copy_byte_string(it, in_0, &mut n, it);
+        if 0 != !(err as libc::c_int == CborNoError as libc::c_int) as libc::c_int as libc::c_long {
+            __assert_rtn(
+                (*::std::mem::transmute::<&[u8; 20], &[libc::c_char; 20]>(
+                    b"generic_dump_base64\x00",
+                )).as_ptr(),
+                b"src/cbortojson.c\x00" as *const u8 as *const libc::c_char,
+                217i32,
+                b"err == CborNoError\x00" as *const u8 as *const libc::c_char,
+            );
+        } else {
+        };
+        let mut val: uint_least32_t = 0i32 as uint_least32_t;
+        i = 0i32 as size_t;
+        while n.wrapping_sub(i) >= 3i32 as libc::c_ulong {
+            /* read 3 bytes x 8 bits = 24 bits */
+            //#ifdef __GNUC__
+            //        } else if (i) {
+            //            __builtin_memcpy(&val, in + i - 1, sizeof(val));
+            //            val = cbor_ntohl(val);
+            //#endif
+            val = ((*in_0.offset(i as isize) as libc::c_int) << 16i32
+                | (*in_0.offset(i.wrapping_add(1i32 as libc::c_ulong) as isize) as libc::c_int)
+                    << 8i32
+                | *in_0.offset(i.wrapping_add(2i32 as libc::c_ulong) as isize) as libc::c_int)
+                as uint_least32_t;
+            /* write 4 chars x 6 bits = 24 bits */
+            let fresh0 = out;
+            out = out.offset(1);
+            *fresh0 =
+                *alphabet.offset((val >> 18i32 & 0x3fi32 as libc::c_uint) as isize) as uint8_t;
+            let fresh1 = out;
+            out = out.offset(1);
+            *fresh1 =
+                *alphabet.offset((val >> 12i32 & 0x3fi32 as libc::c_uint) as isize) as uint8_t;
+            let fresh2 = out;
+            out = out.offset(1);
+            *fresh2 = *alphabet.offset((val >> 6i32 & 0x3fi32 as libc::c_uint) as isize) as uint8_t;
+            let fresh3 = out;
+            out = out.offset(1);
+            *fresh3 = *alphabet.offset((val & 0x3fi32 as libc::c_uint) as isize) as uint8_t;
+            i = (i as libc::c_ulong).wrapping_add(3i32 as libc::c_ulong) as size_t as size_t
+        }
+        /* maybe 1 or 2 bytes left */
+        if 0 != n.wrapping_sub(i) {
+            /* we can read in[i + 1] even if it's past the end of the string because
+             * we know (by construction) that it's a NUL byte */
+            //#ifdef __GNUC__
+            //        uint16_t val16;
+            //        __builtin_memcpy(&val16, in + i, sizeof(val16));
+            //        val = cbor_ntohs(val16);
+            //#else
+            val = ((*in_0.offset(i as isize) as libc::c_int) << 8i32
+                | *in_0.offset(i.wrapping_add(1i32 as libc::c_ulong) as isize) as libc::c_int)
+                as uint_least32_t;
+            //#endif
+            val <<= 8i32;
+            /* the 65th character in the alphabet is our filler: either '=' or '\0' */
+            *out.offset(4isize) = '\u{0}' as i32 as uint8_t;
+            *out.offset(3isize) = *alphabet.offset(64isize) as uint8_t;
+            if n.wrapping_sub(i) == 2i32 as libc::c_ulong {
+                /* write the third char in 3 chars x 6 bits = 18 bits */
+                *out.offset(2isize) =
+                    *alphabet.offset((val >> 6i32 & 0x3fi32 as libc::c_uint) as isize) as uint8_t
+            } else {
+                *out.offset(2isize) = *alphabet.offset(64isize) as uint8_t
+            }
+            *out.offset(1isize) =
+                *alphabet.offset((val >> 12i32 & 0x3fi32 as libc::c_uint) as isize) as uint8_t;
+            *out.offset(0isize) =
+                *alphabet.offset((val >> 18i32 & 0x3fi32 as libc::c_uint) as isize) as uint8_t
+        } else {
+            *out.offset(0isize) = '\u{0}' as i32 as uint8_t
+        }
+        return CborNoError;
+    };
 }
 unsafe extern "C" fn dump_bytestring_base64url(
     mut result: *mut *mut libc::c_char,
