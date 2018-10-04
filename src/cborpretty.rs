@@ -971,18 +971,16 @@ unsafe extern "C" fn resolve_indicator(
     mut end: *const uint8_t,
     mut flags: libc::c_int,
 ) -> *const libc::c_char {
-    static mut indicators: [[libc::c_char; 3]; 8] = unsafe {
-        [
-            [95, 48, 0],
-            [95, 49, 0],
-            [95, 50, 0],
-            [95, 51, 0],
-            [0, 0, 0],
-            [0, 0, 0],
-            [0, 0, 0],
-            [95, 0, 0],
-        ]
-    };
+    static mut indicators: [[libc::c_char; 3]; 8] = [
+        [95, 48, 0],
+        [95, 49, 0],
+        [95, 50, 0],
+        [95, 51, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+        [95, 0, 0],
+    ];
     /* these are not possible */
     /* empty string */
     let mut no_indicator: *const libc::c_char = indicators[5usize].as_ptr();

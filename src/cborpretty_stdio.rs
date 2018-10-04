@@ -147,7 +147,6 @@ pub const CborPrettyNumericEncodingIndicators: CborPrettyFlags = 1;
 pub type CborStreamFunction =
     Option<unsafe extern "C" fn(_: *mut libc::c_void, _: *const libc::c_char, value: *mut CborValue_0, flags: libc::c_int) -> CborError_0>;
 /* The following API requires a hosted C implementation (uses FILE*) */
-#[no_mangle]
 unsafe extern "C" fn cbor_fprintf(
     out: *mut libc::c_void,
     fmt: *const libc::c_char,

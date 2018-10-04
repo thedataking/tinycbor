@@ -1060,104 +1060,103 @@ unsafe extern "C" fn validate_tag(
         return validate_value(it, flags, recursionLeft);
     };
 }
-static mut knownTagData: [KnownTagData; 22] = unsafe {
-    [
-        KnownTagData {
-            tag: 0i32 as uint32_t,
-            types: CborTextStringType as libc::c_int as uint32_t,
-        },
-        KnownTagData {
-            tag: 1i32 as uint32_t,
-            types: (CborIntegerType as libc::c_int + 1i32) as uint32_t,
-        },
-        KnownTagData {
-            tag: 2i32 as uint32_t,
-            types: CborByteStringType as libc::c_int as uint32_t,
-        },
-        KnownTagData {
-            tag: 3i32 as uint32_t,
-            types: CborByteStringType as libc::c_int as uint32_t,
-        },
-        KnownTagData {
-            tag: 4i32 as uint32_t,
-            types: CborArrayType as libc::c_int as uint32_t,
-        },
-        KnownTagData {
-            tag: 5i32 as uint32_t,
-            types: CborArrayType as libc::c_int as uint32_t,
-        },
-        KnownTagData {
-            tag: 16i32 as uint32_t,
-            types: CborArrayType as libc::c_int as uint32_t,
-        },
-        KnownTagData {
-            tag: 17i32 as uint32_t,
-            types: CborArrayType as libc::c_int as uint32_t,
-        },
-        KnownTagData {
-            tag: 18i32 as uint32_t,
-            types: CborArrayType as libc::c_int as uint32_t,
-        },
-        KnownTagData {
-            tag: 21i32 as uint32_t,
-            types: CborByteStringType as libc::c_int as uint32_t
-                | (CborArrayType as libc::c_int as uint32_t) << 8i32
-                | (CborMapType as libc::c_int as uint32_t) << 16i32,
-        },
-        KnownTagData {
-            tag: 22i32 as uint32_t,
-            types: CborByteStringType as libc::c_int as uint32_t
-                | (CborArrayType as libc::c_int as uint32_t) << 8i32
-                | (CborMapType as libc::c_int as uint32_t) << 16i32,
-        },
-        KnownTagData {
-            tag: 23i32 as uint32_t,
-            types: CborByteStringType as libc::c_int as uint32_t
-                | (CborArrayType as libc::c_int as uint32_t) << 8i32
-                | (CborMapType as libc::c_int as uint32_t) << 16i32,
-        },
-        KnownTagData {
-            tag: 24i32 as uint32_t,
-            types: CborByteStringType as libc::c_int as uint32_t,
-        },
-        KnownTagData {
-            tag: 32i32 as uint32_t,
-            types: CborTextStringType as libc::c_int as uint32_t,
-        },
-        KnownTagData {
-            tag: 33i32 as uint32_t,
-            types: CborTextStringType as libc::c_int as uint32_t,
-        },
-        KnownTagData {
-            tag: 34i32 as uint32_t,
-            types: CborTextStringType as libc::c_int as uint32_t,
-        },
-        KnownTagData {
-            tag: 35i32 as uint32_t,
-            types: CborTextStringType as libc::c_int as uint32_t,
-        },
-        KnownTagData {
-            tag: 36i32 as uint32_t,
-            types: CborTextStringType as libc::c_int as uint32_t,
-        },
-        KnownTagData {
-            tag: 96i32 as uint32_t,
-            types: CborArrayType as libc::c_int as uint32_t,
-        },
-        KnownTagData {
-            tag: 97i32 as uint32_t,
-            types: CborArrayType as libc::c_int as uint32_t,
-        },
-        KnownTagData {
-            tag: 98i32 as uint32_t,
-            types: CborArrayType as libc::c_int as uint32_t,
-        },
-        KnownTagData {
-            tag: 55799i32 as uint32_t,
-            types: 0u32,
-        },
-    ]
-};
+static mut knownTagData: [KnownTagData; 22] = 
+[
+    KnownTagData {
+        tag: 0i32 as uint32_t,
+        types: CborTextStringType as libc::c_int as uint32_t,
+    },
+    KnownTagData {
+        tag: 1i32 as uint32_t,
+        types: (CborIntegerType as libc::c_int + 1i32) as uint32_t,
+    },
+    KnownTagData {
+        tag: 2i32 as uint32_t,
+        types: CborByteStringType as libc::c_int as uint32_t,
+    },
+    KnownTagData {
+        tag: 3i32 as uint32_t,
+        types: CborByteStringType as libc::c_int as uint32_t,
+    },
+    KnownTagData {
+        tag: 4i32 as uint32_t,
+        types: CborArrayType as libc::c_int as uint32_t,
+    },
+    KnownTagData {
+        tag: 5i32 as uint32_t,
+        types: CborArrayType as libc::c_int as uint32_t,
+    },
+    KnownTagData {
+        tag: 16i32 as uint32_t,
+        types: CborArrayType as libc::c_int as uint32_t,
+    },
+    KnownTagData {
+        tag: 17i32 as uint32_t,
+        types: CborArrayType as libc::c_int as uint32_t,
+    },
+    KnownTagData {
+        tag: 18i32 as uint32_t,
+        types: CborArrayType as libc::c_int as uint32_t,
+    },
+    KnownTagData {
+        tag: 21i32 as uint32_t,
+        types: CborByteStringType as libc::c_int as uint32_t
+            | (CborArrayType as libc::c_int as uint32_t) << 8i32
+            | (CborMapType as libc::c_int as uint32_t) << 16i32,
+    },
+    KnownTagData {
+        tag: 22i32 as uint32_t,
+        types: CborByteStringType as libc::c_int as uint32_t
+            | (CborArrayType as libc::c_int as uint32_t) << 8i32
+            | (CborMapType as libc::c_int as uint32_t) << 16i32,
+    },
+    KnownTagData {
+        tag: 23i32 as uint32_t,
+        types: CborByteStringType as libc::c_int as uint32_t
+            | (CborArrayType as libc::c_int as uint32_t) << 8i32
+            | (CborMapType as libc::c_int as uint32_t) << 16i32,
+    },
+    KnownTagData {
+        tag: 24i32 as uint32_t,
+        types: CborByteStringType as libc::c_int as uint32_t,
+    },
+    KnownTagData {
+        tag: 32i32 as uint32_t,
+        types: CborTextStringType as libc::c_int as uint32_t,
+    },
+    KnownTagData {
+        tag: 33i32 as uint32_t,
+        types: CborTextStringType as libc::c_int as uint32_t,
+    },
+    KnownTagData {
+        tag: 34i32 as uint32_t,
+        types: CborTextStringType as libc::c_int as uint32_t,
+    },
+    KnownTagData {
+        tag: 35i32 as uint32_t,
+        types: CborTextStringType as libc::c_int as uint32_t,
+    },
+    KnownTagData {
+        tag: 36i32 as uint32_t,
+        types: CborTextStringType as libc::c_int as uint32_t,
+    },
+    KnownTagData {
+        tag: 96i32 as uint32_t,
+        types: CborArrayType as libc::c_int as uint32_t,
+    },
+    KnownTagData {
+        tag: 97i32 as uint32_t,
+        types: CborArrayType as libc::c_int as uint32_t,
+    },
+    KnownTagData {
+        tag: 98i32 as uint32_t,
+        types: CborArrayType as libc::c_int as uint32_t,
+    },
+    KnownTagData {
+        tag: 55799i32 as uint32_t,
+        types: 0u32,
+    },
+];
 unsafe extern "C" fn validate_utf8_string(
     mut ptr: *const libc::c_void,
     mut n: size_t,

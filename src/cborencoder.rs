@@ -181,7 +181,7 @@ pub const Value16Bit: unnamed_0 = 25;
 /* 31 */
 pub const SmallValueMask: unnamed_0 = 31;
 pub const SmallValueBitLength: unnamed_0 = 5;
-static mut CborIndefiniteLength: size_t = unsafe { 18446744073709551615u64 };
+static mut CborIndefiniteLength: size_t = 18446744073709551615u64;
 #[no_mangle]
 pub unsafe extern "C" fn cbor_encoder_init(
     mut encoder: *mut CborEncoder_0,

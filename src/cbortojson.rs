@@ -1070,11 +1070,9 @@ unsafe extern "C" fn dump_bytestring_base16(
     mut result: *mut *mut libc::c_char,
     mut it: *mut CborValue_0,
 ) -> CborError_0 {
-    static mut characters: [libc::c_char; 17] = unsafe {
-        [
-            48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 0,
-        ]
-    };
+    static mut characters: [libc::c_char; 17] = [
+        48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 0,
+    ];
     let mut i: size_t = 0;
     let mut n: size_t = 0i32 as size_t;
     let mut buffer: *mut uint8_t = 0 as *mut uint8_t;
@@ -1122,14 +1120,13 @@ unsafe extern "C" fn dump_bytestring_base64(
     mut result: *mut *mut libc::c_char,
     mut it: *mut CborValue_0,
 ) -> CborError_0 {
-    static mut alphabet: [libc::c_char; 66] = unsafe {
-        [
-            65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86,
-            87, 88, 89, 90, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
-            112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 48, 49, 50, 51, 52, 53, 54, 55,
-            56, 57, 43, 47, 61, 0,
-        ]
-    };
+    static mut alphabet: [libc::c_char; 66] = 
+    [
+        65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86,
+        87, 88, 89, 90, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
+        112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 48, 49, 50, 51, 52, 53, 54, 55,
+        56, 57, 43, 47, 61, 0,
+    ];
     return generic_dump_base64(result, it, alphabet.as_ptr());
 }
 unsafe extern "C" fn generic_dump_base64(
@@ -1240,14 +1237,13 @@ unsafe extern "C" fn dump_bytestring_base64url(
     mut result: *mut *mut libc::c_char,
     mut it: *mut CborValue_0,
 ) -> CborError_0 {
-    static mut alphabet: [libc::c_char; 65] = unsafe {
-        [
-            65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86,
-            87, 88, 89, 90, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
-            112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 48, 49, 50, 51, 52, 53, 54, 55,
-            56, 57, 45, 95, 0,
-        ]
-    };
+    static mut alphabet: [libc::c_char; 65] = 
+    [
+        65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86,
+        87, 88, 89, 90, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
+        112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 48, 49, 50, 51, 52, 53, 54, 55,
+        56, 57, 45, 95, 0,
+    ];
     return generic_dump_base64(result, it, alphabet.as_ptr());
 }
 unsafe extern "C" fn find_tagged_type(

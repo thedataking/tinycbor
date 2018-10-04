@@ -281,9 +281,9 @@ pub unsafe extern "C" fn dumpFile(
     mut printJosn: bool,
     mut flags: libc::c_int,
 ) -> () {
-    static mut chunklen: size_t = unsafe { (16i32 * 1024i32) as size_t };
-    static mut bufsize: size_t = unsafe { 0i32 as size_t };
-    static mut buffer: *mut uint8_t = unsafe { 0 as *const uint8_t as *mut uint8_t };
+    static mut chunklen: size_t = (16i32 * 1024i32) as size_t;
+    static mut bufsize: size_t = 0i32 as size_t;
+    static mut buffer: *mut uint8_t = 0 as *const uint8_t as *mut uint8_t;
     let mut buflen: size_t = 0i32 as size_t;
     loop {
         if bufsize == buflen {
