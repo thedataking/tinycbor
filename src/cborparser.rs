@@ -10,7 +10,11 @@ extern "C" {
     #[no_mangle]
     fn memcmp(_: *const libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> libc::c_int;
     #[no_mangle]
-    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
+    fn memcpy(
+        __dst: *mut libc::c_void,
+        __src: *const libc::c_void,
+        __n: size_t,
+    ) -> *mut libc::c_void;
     #[no_mangle]
     fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong) -> *mut libc::c_void;
     #[no_mangle]
@@ -23,6 +27,29 @@ pub type uint16_t = libc::c_ushort;
 pub type uint32_t = libc::c_uint;
 pub type uint64_t = libc::c_ulonglong;
 pub type uintptr_t = libc::c_ulong;
+/* ***************************************************************************
+**
+** Copyright (C) 2017 Intel Corporation
+**
+** Permission is hereby granted, free of charge, to any person obtaining a copy
+** of this software and associated documentation files (the "Software"), to deal
+** in the Software without restriction, including without limitation the rights
+** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+** copies of the Software, and to permit persons to whom the Software is
+** furnished to do so, subject to the following conditions:
+**
+** The above copyright notice and this permission notice shall be included in
+** all copies or substantial portions of the Software.
+**
+** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+** IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+** FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+** AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+** LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+** OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+** THE SOFTWARE.
+**
+****************************************************************************/
 pub type CborType = libc::c_uint;
 /* equivalent to the break byte, so it will never be used */
 pub const CborInvalidType: CborType = 255;
@@ -39,6 +66,8 @@ pub const CborArrayType: CborType = 128;
 pub const CborTextStringType: CborType = 96;
 pub const CborByteStringType: CborType = 64;
 pub const CborIntegerType: CborType = 0;
+/* #define the constants so we can check with #ifdef */
+/* Error API */
 pub type CborError = libc::c_int;
 /* INT_MAX on two's complement machines */
 pub const CborErrorInternalError: CborError = 2147483647;
@@ -85,8 +114,6 @@ pub const CborErrorUnknownLength: CborError = 2;
 /* errors in all modes */
 pub const CborUnknownError: CborError = 1;
 pub const CborNoError: CborError = 0;
-/* #define the constants so we can check with #ifdef */
-/* Error API */
 pub type CborError_0 = CborError;
 /* Parser API */
 pub type CborParserIteratorFlags = libc::c_uint;
@@ -144,6 +171,12 @@ pub const BreakByte: unnamed = 255;
 pub type IterateFunction =
     Option<unsafe extern "C" fn(_: *mut libc::c_char, _: *const uint8_t, _: size_t) -> uintptr_t>;
 pub const Value32Bit: unnamed = 26;
+/* CBOR_NO_HALF_FLOAT_TYPE */
+/*
+ * CBOR Major types
+ * Encoded in the high 3 bits of the descriptor byte
+ * See http://tools.ietf.org/html/rfc7049#section-2.1
+ */
 pub type CborMajorTypes = libc::c_uint;
 pub const TagType: CborMajorTypes = 6;
 /* a.k.a. object */
@@ -152,6 +185,11 @@ pub const ArrayType: CborMajorTypes = 4;
 pub const TextStringType: CborMajorTypes = 3;
 pub const ByteStringType: CborMajorTypes = 2;
 pub const UnsignedIntegerType: CborMajorTypes = 0;
+/*
+ * CBOR simple and floating point types
+ * Encoded in the low 8 bits of the descriptor byte when the
+ * Major Type is 7.
+ */
 pub type CborSimpleTypes = libc::c_uint;
 pub type unnamed = libc::c_int;
 pub const SmallValueBitLength: unnamed = 5;
@@ -245,10 +283,10 @@ unsafe extern "C" fn preparse_value(mut it: *mut CborValue_0) -> CborError_0 {
                                 | CborIteratorFlag_IntegerValueTooLarge as libc::c_int)
                                 as uint8_t;
                             /* fall through */
-                            current_block = 6717069918625604946;
+                            current_block = 4301060678865021963;
                         }
                         21 | 22 | 23 | 25 => {
-                            current_block = 6717069918625604946;
+                            current_block = 4301060678865021963;
                         }
                         24 => {
                             (*it).extra = *(*it).ptr.offset(1isize) as uint16_t;
@@ -262,6 +300,7 @@ unsafe extern "C" fn preparse_value(mut it: *mut CborValue_0) -> CborError_0 {
                             }
                         }
                         28 | 29 | 30 | 31 => {
+                            /* these conditions can't be reached */
                             if 0 != (0 == 0i32) as libc::c_int as libc::c_long {
                                 __assert_rtn(
                                     (*::std::mem::transmute::<&[u8; 15], &[libc::c_char; 15]>(
@@ -273,7 +312,6 @@ unsafe extern "C" fn preparse_value(mut it: *mut CborValue_0) -> CborError_0 {
                                 );
                             } else {
                             };
-                            /* these conditions can't be reached */
                             return CborErrorUnexpectedBreak;
                         }
                         _ => {
@@ -281,7 +319,7 @@ unsafe extern "C" fn preparse_value(mut it: *mut CborValue_0) -> CborError_0 {
                         }
                     }
                     match current_block {
-                        6717069918625604946 => (*it).type_0 = *(*it).ptr,
+                        4301060678865021963 => (*it).type_0 = *(*it).ptr,
                         _ => {}
                     }
                     return CborNoError;
@@ -814,6 +852,44 @@ unsafe extern "C" fn iterate_string_chunks(
     *buflen = total;
     return CborNoError;
 }
+/* ***************************************************************************
+**
+** Copyright (C) 2017 Intel Corporation
+**
+** Permission is hereby granted, free of charge, to any person obtaining a copy
+** of this software and associated documentation files (the "Software"), to deal
+** in the Software without restriction, including without limitation the rights
+** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+** copies of the Software, and to permit persons to whom the Software is
+** furnished to do so, subject to the following conditions:
+**
+** The above copyright notice and this permission notice shall be included in
+** all copies or substantial portions of the Software.
+**
+** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+** IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+** FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+** AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+** LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+** OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+** THE SOFTWARE.
+**
+****************************************************************************/
+/* inline is a keyword */
+/* DBL_DECIMAL_DIG is C11 */
+/* C-style const_cast without triggering a warning with -Wcast-qual */
+unsafe extern "C" fn add_check_overflow(
+    mut v1: size_t,
+    mut v2: size_t,
+    mut r: *mut size_t,
+) -> bool {
+    //#if ((defined(__GNUC__) && (__GNUC__ >= 5)) && !defined(__INTEL_COMPILER)) || __has_builtin(__builtin_add_overflow)
+    //    return __builtin_add_overflow(v1, v2, r);
+    //#else
+    /* unsigned additions are well-defined */
+    *r = v1.wrapping_add(v2);
+    return v1 > v1.wrapping_add(v2);
+}
 unsafe extern "C" fn get_string_chunk(
     mut it: *mut CborValue_0,
     mut bufferptr: *mut *const libc::c_void,
@@ -832,7 +908,7 @@ unsafe extern "C" fn get_string_chunk(
         /* already iterating */
         if cbor_value_is_length_known(it) {
             /* if the length was known, it wasn't chunked, so finish iteration */
-            current_block = 9011364403481717987;
+            current_block = 15989482294270137911;
         } else {
             current_block = 792017965103506125;
         }
@@ -911,6 +987,7 @@ unsafe extern "C" fn cbor_value_is_length_known(mut value: *const CborValue_0) -
 unsafe extern "C" fn cbor_value_is_text_string(mut value: *const CborValue_0) -> bool {
     return (*value).type_0 as libc::c_int == CborTextStringType as libc::c_int;
 }
+/* Strings */
 unsafe extern "C" fn cbor_value_is_byte_string(mut value: *const CborValue_0) -> bool {
     return (*value).type_0 as libc::c_int == CborByteStringType as libc::c_int;
 }
@@ -1008,6 +1085,8 @@ pub unsafe extern "C" fn _cbor_value_decode_int64_internal(
                          as *const u8 as *const libc::c_char);
     } else {
     };
+    /* since the additional information can only be Value32Bit or Value64Bit,
+     * we just need to test for the one bit those two options differ */
     if 0 != !(*(*value).ptr as libc::c_int & SmallValueMask as libc::c_int
         == Value32Bit as libc::c_int
         || *(*value).ptr as libc::c_int & SmallValueMask as libc::c_int
@@ -1021,8 +1100,6 @@ pub unsafe extern "C" fn _cbor_value_decode_int64_internal(
                          as *const u8 as *const libc::c_char);
     } else {
     };
-    /* since the additional information can only be Value32Bit or Value64Bit,
-     * we just need to test for the one bit those two options differ */
     if *(*value).ptr as libc::c_int & 1i32 == Value32Bit as libc::c_int & 1i32 {
         return get32((*value).ptr.offset(1isize)) as uint64_t;
     } else {
@@ -1052,6 +1129,7 @@ unsafe extern "C" fn _cbor_value_extract_int64_helper(mut value: *const CborValu
         (*value).extra as libc::c_ulonglong
     };
 }
+/* Integers */
 unsafe extern "C" fn cbor_value_is_integer(mut value: *const CborValue_0) -> bool {
     return (*value).type_0 as libc::c_int == CborIntegerType as libc::c_int;
 }
@@ -1135,6 +1213,7 @@ pub unsafe extern "C" fn cbor_value_get_int_checked(
     }
     return CborNoError;
 }
+/* Tags */
 unsafe extern "C" fn cbor_value_is_tag(mut value: *const CborValue_0) -> bool {
     return (*value).type_0 as libc::c_int == CborTagType as libc::c_int;
 }
@@ -1227,7 +1306,7 @@ pub unsafe extern "C" fn cbor_value_map_find_value(
             /* find the non-tag so we can compare */
             err = cbor_value_skip_tag(element);
             if 0 != err as u64 {
-                current_block = 17106194663316542417;
+                current_block = 11885127744888120434;
                 break;
             }
             if cbor_value_is_text_string(element) {
@@ -1242,7 +1321,7 @@ pub unsafe extern "C" fn cbor_value_map_find_value(
                     Some(iterate_memcmp),
                 );
                 if 0 != err as u64 {
-                    current_block = 17106194663316542417;
+                    current_block = 11885127744888120434;
                     break;
                 }
                 if equals {
@@ -1252,24 +1331,24 @@ pub unsafe extern "C" fn cbor_value_map_find_value(
                 /* skip this key */
                 err = cbor_value_advance(element);
                 if 0 != err as u64 {
-                    current_block = 17106194663316542417;
+                    current_block = 11885127744888120434;
                     break;
                 }
             }
             /* skip this value */
             err = cbor_value_skip_tag(element);
             if 0 != err as u64 {
-                current_block = 17106194663316542417;
+                current_block = 11885127744888120434;
                 break;
             }
             err = cbor_value_advance(element);
             if 0 != err as u64 {
-                current_block = 17106194663316542417;
+                current_block = 11885127744888120434;
                 break;
             }
         }
         match current_block {
-            17106194663316542417 => {}
+            11885127744888120434 => {}
             _ => {
                 /* not found */
                 (*element).type_0 = CborInvalidType as libc::c_int as uint8_t;
@@ -1280,6 +1359,7 @@ pub unsafe extern "C" fn cbor_value_map_find_value(
     (*element).type_0 = CborInvalidType as libc::c_int as uint8_t;
     return err;
 }
+/* Floating point */
 unsafe extern "C" fn cbor_value_is_half_float(mut value: *const CborValue_0) -> bool {
     return (*value).type_0 as libc::c_int == CborHalfFloatType as libc::c_int;
 }

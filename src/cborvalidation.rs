@@ -10,7 +10,11 @@ extern "C" {
     #[no_mangle]
     fn memcmp(_: *const libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> libc::c_int;
     #[no_mangle]
-    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
+    fn memcpy(
+        __dst: *mut libc::c_void,
+        __src: *const libc::c_void,
+        __n: size_t,
+    ) -> *mut libc::c_void;
     #[no_mangle]
     fn cbor_value_advance_fixed(it: *mut CborValue_0) -> CborError_0;
     #[no_mangle]
@@ -62,22 +66,6 @@ pub type uint8_t = libc::c_uchar;
 pub type uint16_t = libc::c_ushort;
 pub type uint32_t = libc::c_uint;
 pub type uint64_t = libc::c_ulonglong;
-pub type CborType = libc::c_uint;
-/* equivalent to the break byte, so it will never be used */
-pub const CborInvalidType: CborType = 255;
-pub const CborDoubleType: CborType = 251;
-pub const CborFloatType: CborType = 250;
-pub const CborHalfFloatType: CborType = 249;
-pub const CborUndefinedType: CborType = 247;
-pub const CborNullType: CborType = 246;
-pub const CborBooleanType: CborType = 245;
-pub const CborSimpleType: CborType = 224;
-pub const CborTagType: CborType = 192;
-pub const CborMapType: CborType = 160;
-pub const CborArrayType: CborType = 128;
-pub const CborTextStringType: CborType = 96;
-pub const CborByteStringType: CborType = 64;
-pub const CborIntegerType: CborType = 0;
 /* ***************************************************************************
 **
 ** Copyright (C) 2017 Intel Corporation
@@ -101,8 +89,26 @@ pub const CborIntegerType: CborType = 0;
 ** THE SOFTWARE.
 **
 ****************************************************************************/
+pub type CborType = libc::c_uint;
+/* equivalent to the break byte, so it will never be used */
+pub const CborInvalidType: CborType = 255;
+pub const CborDoubleType: CborType = 251;
+pub const CborFloatType: CborType = 250;
+pub const CborHalfFloatType: CborType = 249;
+pub const CborUndefinedType: CborType = 247;
+pub const CborNullType: CborType = 246;
+pub const CborBooleanType: CborType = 245;
+pub const CborSimpleType: CborType = 224;
+pub const CborTagType: CborType = 192;
+pub const CborMapType: CborType = 160;
+pub const CborArrayType: CborType = 128;
+pub const CborTextStringType: CborType = 96;
+pub const CborByteStringType: CborType = 64;
+pub const CborIntegerType: CborType = 0;
 pub type CborType_0 = CborType;
 pub type CborTag = uint64_t;
+/* #define the constants so we can check with #ifdef */
+/* Error API */
 pub type CborError = libc::c_int;
 /* INT_MAX on two's complement machines */
 pub const CborErrorInternalError: CborError = 2147483647;
@@ -149,8 +155,6 @@ pub const CborErrorUnknownLength: CborError = 2;
 /* errors in all modes */
 pub const CborUnknownError: CborError = 1;
 pub const CborNoError: CborError = 0;
-/* #define the constants so we can check with #ifdef */
-/* Error API */
 pub type CborError_0 = CborError;
 /* Parser API */
 pub type CborParserIteratorFlags = libc::c_uint;
@@ -460,6 +464,7 @@ unsafe extern "C" fn _cbor_value_extract_int64_helper(mut value: *const CborValu
 unsafe extern "C" fn cbor_value_get_type(mut value: *const CborValue_0) -> CborType_0 {
     return (*value).type_0 as CborType_0;
 }
+/* Simple types */
 unsafe extern "C" fn cbor_value_is_simple_type(mut value: *const CborValue_0) -> bool {
     return (*value).type_0 as libc::c_int == CborSimpleType as libc::c_int;
 }
@@ -481,6 +486,7 @@ unsafe extern "C" fn cbor_value_get_simple_type(
     *result = (*value).extra as uint8_t;
     return CborNoError;
 }
+/* Integers */
 unsafe extern "C" fn cbor_value_is_integer(mut value: *const CborValue_0) -> bool {
     return (*value).type_0 as libc::c_int == CborIntegerType as libc::c_int;
 }
@@ -505,6 +511,7 @@ unsafe extern "C" fn cbor_value_get_raw_integer(
 unsafe extern "C" fn cbor_value_is_length_known(mut value: *const CborValue_0) -> bool {
     return (*value).flags as libc::c_int & CborIteratorFlag_UnknownLength as libc::c_int == 0i32;
 }
+/* Tags */
 unsafe extern "C" fn cbor_value_is_tag(mut value: *const CborValue_0) -> bool {
     return (*value).type_0 as libc::c_int == CborTagType as libc::c_int;
 }
@@ -674,6 +681,7 @@ unsafe extern "C" fn validate_value(
         0 => {
             let mut val: uint64_t = 0;
             err = cbor_value_get_raw_integer(it, &mut val);
+            /* can't fail */
             if 0 != !(err as libc::c_int == CborNoError as libc::c_int) as libc::c_int
                 as libc::c_long
             {
@@ -689,7 +697,6 @@ unsafe extern "C" fn validate_value(
             };
         }
         64 | 96 => {
-            /* can't fail */
             let mut n: size_t = 0i32 as size_t;
             let mut ptr: *const libc::c_void = 0 as *const libc::c_void;
             err = _cbor_value_prepare_string_iteration(it);
@@ -728,6 +735,7 @@ unsafe extern "C" fn validate_value(
         192 => {
             let mut tag: CborTag = 0;
             err = cbor_value_get_tag(it, &mut tag);
+            /* can't fail */
             if 0 != !(err as libc::c_int == CborNoError as libc::c_int) as libc::c_int
                 as libc::c_long
             {
@@ -741,7 +749,6 @@ unsafe extern "C" fn validate_value(
                 );
             } else {
             };
-            /* can't fail */
             err = cbor_value_advance_fixed(it);
             if 0 != err as u64 {
                 return err;
@@ -757,6 +764,7 @@ unsafe extern "C" fn validate_value(
         224 => {
             let mut simple_type: uint8_t = 0;
             err = cbor_value_get_simple_type(it, &mut simple_type);
+            /* can't fail */
             if 0 != !(err as libc::c_int == CborNoError as libc::c_int) as libc::c_int
                 as libc::c_long
             {
@@ -770,7 +778,6 @@ unsafe extern "C" fn validate_value(
                 );
             } else {
             };
-            /* can't fail */
             err = validate_simple_type(simple_type, flags);
             if 0 != err as u64 {
                 return err;
@@ -814,6 +821,7 @@ unsafe extern "C" fn validate_floating_point(
     } else {
         err = cbor_value_get_double(it, &mut val)
     }
+    /* can't fail */
     if 0 != !(err as libc::c_int == CborNoError as libc::c_int) as libc::c_int as libc::c_long {
         __assert_rtn(
             (*::std::mem::transmute::<&[u8; 24], &[libc::c_char; 24]>(
@@ -825,7 +833,6 @@ unsafe extern "C" fn validate_floating_point(
         );
     } else {
     };
-    /* can't fail */
     r = if ::std::mem::size_of::<libc::c_double>() as libc::c_ulong
         == ::std::mem::size_of::<libc::c_float>() as libc::c_ulong
     {

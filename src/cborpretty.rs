@@ -8,7 +8,11 @@ extern "C" {
         _: *const libc::c_char,
     ) -> !;
     #[no_mangle]
-    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
+    fn memcpy(
+        __dst: *mut libc::c_void,
+        __src: *const libc::c_void,
+        __n: size_t,
+    ) -> *mut libc::c_void;
     #[no_mangle]
     fn cbor_value_advance_fixed(it: *mut CborValue_0) -> CborError_0;
     #[no_mangle]
@@ -60,22 +64,6 @@ pub type uint8_t = libc::c_uchar;
 pub type uint16_t = libc::c_ushort;
 pub type uint32_t = libc::c_uint;
 pub type uint64_t = libc::c_ulonglong;
-pub type CborType = libc::c_uint;
-/* equivalent to the break byte, so it will never be used */
-pub const CborInvalidType: CborType = 255;
-pub const CborDoubleType: CborType = 251;
-pub const CborFloatType: CborType = 250;
-pub const CborHalfFloatType: CborType = 249;
-pub const CborUndefinedType: CborType = 247;
-pub const CborNullType: CborType = 246;
-pub const CborBooleanType: CborType = 245;
-pub const CborSimpleType: CborType = 224;
-pub const CborTagType: CborType = 192;
-pub const CborMapType: CborType = 160;
-pub const CborArrayType: CborType = 128;
-pub const CborTextStringType: CborType = 96;
-pub const CborByteStringType: CborType = 64;
-pub const CborIntegerType: CborType = 0;
 /* ***************************************************************************
 **
 ** Copyright (C) 2017 Intel Corporation
@@ -99,8 +87,26 @@ pub const CborIntegerType: CborType = 0;
 ** THE SOFTWARE.
 **
 ****************************************************************************/
+pub type CborType = libc::c_uint;
+/* equivalent to the break byte, so it will never be used */
+pub const CborInvalidType: CborType = 255;
+pub const CborDoubleType: CborType = 251;
+pub const CborFloatType: CborType = 250;
+pub const CborHalfFloatType: CborType = 249;
+pub const CborUndefinedType: CborType = 247;
+pub const CborNullType: CborType = 246;
+pub const CborBooleanType: CborType = 245;
+pub const CborSimpleType: CborType = 224;
+pub const CborTagType: CborType = 192;
+pub const CborMapType: CborType = 160;
+pub const CborArrayType: CborType = 128;
+pub const CborTextStringType: CborType = 96;
+pub const CborByteStringType: CborType = 64;
+pub const CborIntegerType: CborType = 0;
 pub type CborType_0 = CborType;
 pub type CborTag = uint64_t;
+/* #define the constants so we can check with #ifdef */
+/* Error API */
 pub type CborError = libc::c_int;
 /* INT_MAX on two's complement machines */
 pub const CborErrorInternalError: CborError = 2147483647;
@@ -147,8 +153,6 @@ pub const CborErrorUnknownLength: CborError = 2;
 /* errors in all modes */
 pub const CborUnknownError: CborError = 1;
 pub const CborNoError: CborError = 0;
-/* #define the constants so we can check with #ifdef */
-/* Error API */
 pub type CborError_0 = CborError;
 /* Parser API */
 pub type CborParserIteratorFlags = libc::c_uint;
@@ -215,6 +219,7 @@ unsafe extern "C" fn _cbor_value_extract_int64_helper(mut value: *const CborValu
 unsafe extern "C" fn cbor_value_get_type(mut value: *const CborValue_0) -> CborType_0 {
     return (*value).type_0 as CborType_0;
 }
+/* Booleans */
 unsafe extern "C" fn cbor_value_is_boolean(mut value: *const CborValue_0) -> bool {
     return (*value).type_0 as libc::c_int == CborBooleanType as libc::c_int;
 }
@@ -236,6 +241,7 @@ unsafe extern "C" fn cbor_value_get_boolean(
     *result = 0 != (*value).extra;
     return CborNoError;
 }
+/* Simple types */
 unsafe extern "C" fn cbor_value_is_simple_type(mut value: *const CborValue_0) -> bool {
     return (*value).type_0 as libc::c_int == CborSimpleType as libc::c_int;
 }
@@ -257,6 +263,7 @@ unsafe extern "C" fn cbor_value_get_simple_type(
     *result = (*value).extra as uint8_t;
     return CborNoError;
 }
+/* Integers */
 unsafe extern "C" fn cbor_value_is_integer(mut value: *const CborValue_0) -> bool {
     return (*value).type_0 as libc::c_int == CborIntegerType as libc::c_int;
 }
@@ -285,6 +292,7 @@ unsafe extern "C" fn cbor_value_get_raw_integer(
 unsafe extern "C" fn cbor_value_is_length_known(mut value: *const CborValue_0) -> bool {
     return (*value).flags as libc::c_int & CborIteratorFlag_UnknownLength as libc::c_int == 0i32;
 }
+/* Tags */
 unsafe extern "C" fn cbor_value_is_tag(mut value: *const CborValue_0) -> bool {
     return (*value).type_0 as libc::c_int == CborTagType as libc::c_int;
 }
@@ -403,12 +411,12 @@ unsafe extern "C" fn value_to_pretty(
     mut flags: libc::c_int,
     mut recursionsLeft: libc::c_int,
 ) -> CborError_0 {
-    let mut ival: uint64_t = 0;
-    let mut suffix: *const libc::c_char = 0 as *const libc::c_char;
-    let mut f: libc::c_float = 0.;
-    let mut r: libc::c_int = 0;
     let mut f16: uint16_t = 0;
+    let mut ival: uint64_t = 0;
+    let mut r: libc::c_int = 0;
     let mut val_1: libc::c_double = 0.;
+    let mut f: libc::c_float = 0.;
+    let mut suffix: *const libc::c_char = 0 as *const libc::c_char;
     let mut current_block: u64;
     let mut err: CborError_0 = CborNoError;
     let mut type_0: CborType_0 = cbor_value_get_type(it);
@@ -1064,11 +1072,11 @@ unsafe extern "C" fn utf8EscapedDump(
                         34 | 92 => {
                             current_block = 820271813250567934;
                             match current_block {
-                                15406670416841790907 => escaped = 'b' as i32 as libc::c_uchar,
-                                12275382707489007217 => escaped = 'n' as i32 as libc::c_uchar,
-                                12869009347971074526 => escaped = 't' as i32 as libc::c_uchar,
-                                13935456465286830489 => escaped = 'f' as i32 as libc::c_uchar,
-                                13065623900529505543 => escaped = 'r' as i32 as libc::c_uchar,
+                                6578035323546625521 => escaped = 'n' as i32 as libc::c_uchar,
+                                10029446268360178412 => escaped = 't' as i32 as libc::c_uchar,
+                                5430767077051480867 => escaped = 'b' as i32 as libc::c_uchar,
+                                2039210764951876080 => escaped = 'f' as i32 as libc::c_uchar,
+                                5575675750184812876 => escaped = 'r' as i32 as libc::c_uchar,
                                 _ => {}
                             }
                             err = stream.expect("non-null function pointer")(
@@ -1079,13 +1087,13 @@ unsafe extern "C" fn utf8EscapedDump(
                             continue;
                         }
                         8 => {
-                            current_block = 15406670416841790907;
+                            current_block = 5430767077051480867;
                             match current_block {
-                                15406670416841790907 => escaped = 'b' as i32 as libc::c_uchar,
-                                12275382707489007217 => escaped = 'n' as i32 as libc::c_uchar,
-                                12869009347971074526 => escaped = 't' as i32 as libc::c_uchar,
-                                13935456465286830489 => escaped = 'f' as i32 as libc::c_uchar,
-                                13065623900529505543 => escaped = 'r' as i32 as libc::c_uchar,
+                                6578035323546625521 => escaped = 'n' as i32 as libc::c_uchar,
+                                10029446268360178412 => escaped = 't' as i32 as libc::c_uchar,
+                                5430767077051480867 => escaped = 'b' as i32 as libc::c_uchar,
+                                2039210764951876080 => escaped = 'f' as i32 as libc::c_uchar,
+                                5575675750184812876 => escaped = 'r' as i32 as libc::c_uchar,
                                 _ => {}
                             }
                             err = stream.expect("non-null function pointer")(
@@ -1096,13 +1104,13 @@ unsafe extern "C" fn utf8EscapedDump(
                             continue;
                         }
                         12 => {
-                            current_block = 13935456465286830489;
+                            current_block = 2039210764951876080;
                             match current_block {
-                                15406670416841790907 => escaped = 'b' as i32 as libc::c_uchar,
-                                12275382707489007217 => escaped = 'n' as i32 as libc::c_uchar,
-                                12869009347971074526 => escaped = 't' as i32 as libc::c_uchar,
-                                13935456465286830489 => escaped = 'f' as i32 as libc::c_uchar,
-                                13065623900529505543 => escaped = 'r' as i32 as libc::c_uchar,
+                                6578035323546625521 => escaped = 'n' as i32 as libc::c_uchar,
+                                10029446268360178412 => escaped = 't' as i32 as libc::c_uchar,
+                                5430767077051480867 => escaped = 'b' as i32 as libc::c_uchar,
+                                2039210764951876080 => escaped = 'f' as i32 as libc::c_uchar,
+                                5575675750184812876 => escaped = 'r' as i32 as libc::c_uchar,
                                 _ => {}
                             }
                             err = stream.expect("non-null function pointer")(
@@ -1113,13 +1121,13 @@ unsafe extern "C" fn utf8EscapedDump(
                             continue;
                         }
                         10 => {
-                            current_block = 12275382707489007217;
+                            current_block = 6578035323546625521;
                             match current_block {
-                                15406670416841790907 => escaped = 'b' as i32 as libc::c_uchar,
-                                12275382707489007217 => escaped = 'n' as i32 as libc::c_uchar,
-                                12869009347971074526 => escaped = 't' as i32 as libc::c_uchar,
-                                13935456465286830489 => escaped = 'f' as i32 as libc::c_uchar,
-                                13065623900529505543 => escaped = 'r' as i32 as libc::c_uchar,
+                                6578035323546625521 => escaped = 'n' as i32 as libc::c_uchar,
+                                10029446268360178412 => escaped = 't' as i32 as libc::c_uchar,
+                                5430767077051480867 => escaped = 'b' as i32 as libc::c_uchar,
+                                2039210764951876080 => escaped = 'f' as i32 as libc::c_uchar,
+                                5575675750184812876 => escaped = 'r' as i32 as libc::c_uchar,
                                 _ => {}
                             }
                             err = stream.expect("non-null function pointer")(
@@ -1130,13 +1138,13 @@ unsafe extern "C" fn utf8EscapedDump(
                             continue;
                         }
                         13 => {
-                            current_block = 13065623900529505543;
+                            current_block = 5575675750184812876;
                             match current_block {
-                                15406670416841790907 => escaped = 'b' as i32 as libc::c_uchar,
-                                12275382707489007217 => escaped = 'n' as i32 as libc::c_uchar,
-                                12869009347971074526 => escaped = 't' as i32 as libc::c_uchar,
-                                13935456465286830489 => escaped = 'f' as i32 as libc::c_uchar,
-                                13065623900529505543 => escaped = 'r' as i32 as libc::c_uchar,
+                                6578035323546625521 => escaped = 'n' as i32 as libc::c_uchar,
+                                10029446268360178412 => escaped = 't' as i32 as libc::c_uchar,
+                                5430767077051480867 => escaped = 'b' as i32 as libc::c_uchar,
+                                2039210764951876080 => escaped = 'f' as i32 as libc::c_uchar,
+                                5575675750184812876 => escaped = 'r' as i32 as libc::c_uchar,
                                 _ => {}
                             }
                             err = stream.expect("non-null function pointer")(
@@ -1147,13 +1155,13 @@ unsafe extern "C" fn utf8EscapedDump(
                             continue;
                         }
                         9 => {
-                            current_block = 12869009347971074526;
+                            current_block = 10029446268360178412;
                             match current_block {
-                                15406670416841790907 => escaped = 'b' as i32 as libc::c_uchar,
-                                12275382707489007217 => escaped = 'n' as i32 as libc::c_uchar,
-                                12869009347971074526 => escaped = 't' as i32 as libc::c_uchar,
-                                13935456465286830489 => escaped = 'f' as i32 as libc::c_uchar,
-                                13065623900529505543 => escaped = 'r' as i32 as libc::c_uchar,
+                                6578035323546625521 => escaped = 'n' as i32 as libc::c_uchar,
+                                10029446268360178412 => escaped = 't' as i32 as libc::c_uchar,
+                                5430767077051480867 => escaped = 'b' as i32 as libc::c_uchar,
+                                2039210764951876080 => escaped = 'f' as i32 as libc::c_uchar,
+                                5575675750184812876 => escaped = 'r' as i32 as libc::c_uchar,
                                 _ => {}
                             }
                             err = stream.expect("non-null function pointer")(

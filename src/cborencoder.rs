@@ -8,7 +8,11 @@ extern "C" {
         _: *const libc::c_char,
     ) -> !;
     #[no_mangle]
-    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
+    fn memcpy(
+        __dst: *mut libc::c_void,
+        __src: *const libc::c_void,
+        __n: size_t,
+    ) -> *mut libc::c_void;
 }
 pub type ptrdiff_t = libc::c_long;
 pub type size_t = libc::c_ulong;
@@ -17,22 +21,6 @@ pub type uint8_t = libc::c_uchar;
 pub type uint16_t = libc::c_ushort;
 pub type uint32_t = libc::c_uint;
 pub type uint64_t = libc::c_ulonglong;
-pub type CborType = libc::c_uint;
-/* equivalent to the break byte, so it will never be used */
-pub const CborInvalidType: CborType = 255;
-pub const CborDoubleType: CborType = 251;
-pub const CborFloatType: CborType = 250;
-pub const CborHalfFloatType: CborType = 249;
-pub const CborUndefinedType: CborType = 247;
-pub const CborNullType: CborType = 246;
-pub const CborBooleanType: CborType = 245;
-pub const CborSimpleType: CborType = 224;
-pub const CborTagType: CborType = 192;
-pub const CborMapType: CborType = 160;
-pub const CborArrayType: CborType = 128;
-pub const CborTextStringType: CborType = 96;
-pub const CborByteStringType: CborType = 64;
-pub const CborIntegerType: CborType = 0;
 /* ***************************************************************************
 **
 ** Copyright (C) 2017 Intel Corporation
@@ -56,8 +44,26 @@ pub const CborIntegerType: CborType = 0;
 ** THE SOFTWARE.
 **
 ****************************************************************************/
+pub type CborType = libc::c_uint;
+/* equivalent to the break byte, so it will never be used */
+pub const CborInvalidType: CborType = 255;
+pub const CborDoubleType: CborType = 251;
+pub const CborFloatType: CborType = 250;
+pub const CborHalfFloatType: CborType = 249;
+pub const CborUndefinedType: CborType = 247;
+pub const CborNullType: CborType = 246;
+pub const CborBooleanType: CborType = 245;
+pub const CborSimpleType: CborType = 224;
+pub const CborTagType: CborType = 192;
+pub const CborMapType: CborType = 160;
+pub const CborArrayType: CborType = 128;
+pub const CborTextStringType: CborType = 96;
+pub const CborByteStringType: CborType = 64;
+pub const CborIntegerType: CborType = 0;
 pub type CborType_0 = CborType;
 pub type CborTag = uint64_t;
+/* #define the constants so we can check with #ifdef */
+/* Error API */
 pub type CborError = libc::c_int;
 /* INT_MAX on two's complement machines */
 pub const CborErrorInternalError: CborError = 2147483647;
@@ -104,8 +110,6 @@ pub const CborErrorUnknownLength: CborError = 2;
 /* errors in all modes */
 pub const CborUnknownError: CborError = 1;
 pub const CborNoError: CborError = 0;
-/* #define the constants so we can check with #ifdef */
-/* Error API */
 pub type CborError_0 = CborError;
 /* Encoder API */
 #[derive(Copy, Clone)]
@@ -119,8 +123,8 @@ pub struct CborEncoder {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union unnamed {
-    ptr: *mut uint8_t,
-    bytes_needed: ptrdiff_t,
+    pub ptr: *mut uint8_t,
+    pub bytes_needed: ptrdiff_t,
 }
 pub type CborEncoder_0 = CborEncoder;
 pub const MajorTypeShift: unnamed_0 = 5;
@@ -146,7 +150,18 @@ pub type CborParserIteratorFlags = libc::c_uint;
 pub const CborIteratorFlag_IteratingStringChunks: CborParserIteratorFlags = 2;
 pub const CborIteratorFlag_NegativeInteger: CborParserIteratorFlags = 2;
 pub const CborIteratorFlag_IntegerValueTooLarge: CborParserIteratorFlags = 1;
+/* CBOR_NO_HALF_FLOAT_TYPE */
+/*
+ * CBOR Major types
+ * Encoded in the high 3 bits of the descriptor byte
+ * See http://tools.ietf.org/html/rfc7049#section-2.1
+ */
 pub type CborMajorTypes = libc::c_uint;
+/*
+ * CBOR simple and floating point types
+ * Encoded in the low 8 bits of the descriptor byte when the
+ * Major Type is 7.
+ */
 pub type CborSimpleTypes = libc::c_uint;
 /* ditto */
 pub const DoublePrecisionFloat: CborSimpleTypes = 27;
