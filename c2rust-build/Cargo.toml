@@ -3,6 +3,7 @@ name = "c2rust-build"
 authors = ["C2Rust"]
 version = "0.0.0"
 publish = false
+build = "build.rs"
 
 [[bin]]
 path = "main.rs"
@@ -12,3 +13,5 @@ name = "cbordump-rs"
 #path = "lib.rs"
 #crate-type = "staticlib"
 
+[build-dependencies]
+cc = "1.0"
