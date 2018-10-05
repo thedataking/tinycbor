@@ -37,3 +37,6 @@ extern crate libc;
 
 #[path = "../src/cborvalidation.rs"] pub mod cborvalidation;
 
+pub fn main() {
+    cbordump::main()
+}
