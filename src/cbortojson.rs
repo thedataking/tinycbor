@@ -693,9 +693,9 @@ unsafe extern "C" fn value_to_json(
     mut type_0: CborType_0,
     mut status: *mut ConversionStatus,
 ) -> CborError_0 {
-    let mut val_1: libc::c_double = 0.;
     let mut f16: uint16_t = 0;
     let mut n: size_t = 0;
+    let mut val_1: libc::c_double = 0.;
     let mut f: libc::c_float = 0.;
     let mut current_block: u64;
     let mut err: CborError_0 = CborNoError;
@@ -1120,8 +1120,7 @@ unsafe extern "C" fn dump_bytestring_base64(
     mut result: *mut *mut libc::c_char,
     mut it: *mut CborValue_0,
 ) -> CborError_0 {
-    static mut alphabet: [libc::c_char; 66] = 
-    [
+    static mut alphabet: [libc::c_char; 66] = [
         65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86,
         87, 88, 89, 90, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
         112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 48, 49, 50, 51, 52, 53, 54, 55,

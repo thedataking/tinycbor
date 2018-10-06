@@ -146,15 +146,8 @@ pub const CborPrettyIndicateIndeterminateLength: CborPrettyFlags = 2;
 pub const CborPrettyTextualEncodingIndicators: CborPrettyFlags = 0;
 pub const CborPrettyNumericEncodingIndicators: CborPrettyFlags = 1;
 pub type CborStreamFunction =
-Option<unsafe extern "C" fn(_: *mut libc::c_void, _: *const libc::c_char, ...) -> CborError_0>;
+    Option<unsafe extern "C" fn(_: *mut libc::c_void, _: *const libc::c_char, ...) -> CborError_0>;
 /* The following API requires a hosted C implementation (uses FILE*) */
-//unsafe extern "C" fn cbor_fprintf(
-//    out: *mut libc::c_void,
-//    fmt: *const libc::c_char,
-//    value: *mut CborValue_0,
-//    flags: libc::c_int) -> CborError {
-//    panic!("unimplemented");
-//}
 #[no_mangle]
 pub unsafe extern "C" fn cbor_value_to_pretty_advance_flags(
     mut out: *mut FILE,

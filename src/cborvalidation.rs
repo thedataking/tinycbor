@@ -1060,8 +1060,7 @@ unsafe extern "C" fn validate_tag(
         return validate_value(it, flags, recursionLeft);
     };
 }
-static mut knownTagData: [KnownTagData; 22] = 
-[
+static mut knownTagData: [KnownTagData; 22] = [
     KnownTagData {
         tag: 0i32 as uint32_t,
         types: CborTextStringType as libc::c_int as uint32_t,

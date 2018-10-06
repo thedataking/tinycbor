@@ -883,12 +883,9 @@ unsafe extern "C" fn add_check_overflow(
     mut v2: size_t,
     mut r: *mut size_t,
 ) -> bool {
-    //#if ((defined(__GNUC__) && (__GNUC__ >= 5)) && !defined(__INTEL_COMPILER)) || __has_builtin(__builtin_add_overflow)
-    //    return __builtin_add_overflow(v1, v2, r);
-    //#else
-    /* unsigned additions are well-defined */
-    *r = v1.wrapping_add(v2);
-    return v1 > v1.wrapping_add(v2);
+    let (fresh0, fresh1) = v1.overflowing_add(v2);
+    *r = fresh0;
+    return fresh1;
 }
 unsafe extern "C" fn get_string_chunk(
     mut it: *mut CborValue_0,
@@ -908,7 +905,7 @@ unsafe extern "C" fn get_string_chunk(
         /* already iterating */
         if cbor_value_is_length_known(it) {
             /* if the length was known, it wasn't chunked, so finish iteration */
-            current_block = 15989482294270137911;
+            current_block = 16990311520665930296;
         } else {
             current_block = 792017965103506125;
         }
@@ -1306,7 +1303,7 @@ pub unsafe extern "C" fn cbor_value_map_find_value(
             /* find the non-tag so we can compare */
             err = cbor_value_skip_tag(element);
             if 0 != err as u64 {
-                current_block = 11885127744888120434;
+                current_block = 4866892619474992625;
                 break;
             }
             if cbor_value_is_text_string(element) {
@@ -1321,7 +1318,7 @@ pub unsafe extern "C" fn cbor_value_map_find_value(
                     Some(iterate_memcmp),
                 );
                 if 0 != err as u64 {
-                    current_block = 11885127744888120434;
+                    current_block = 4866892619474992625;
                     break;
                 }
                 if equals {
@@ -1331,24 +1328,24 @@ pub unsafe extern "C" fn cbor_value_map_find_value(
                 /* skip this key */
                 err = cbor_value_advance(element);
                 if 0 != err as u64 {
-                    current_block = 11885127744888120434;
+                    current_block = 4866892619474992625;
                     break;
                 }
             }
             /* skip this value */
             err = cbor_value_skip_tag(element);
             if 0 != err as u64 {
-                current_block = 11885127744888120434;
+                current_block = 4866892619474992625;
                 break;
             }
             err = cbor_value_advance(element);
             if 0 != err as u64 {
-                current_block = 11885127744888120434;
+                current_block = 4866892619474992625;
                 break;
             }
         }
         match current_block {
-            11885127744888120434 => {}
+            4866892619474992625 => {}
             _ => {
                 /* not found */
                 (*element).type_0 = CborInvalidType as libc::c_int as uint8_t;
