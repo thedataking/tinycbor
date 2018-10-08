@@ -87,3 +87,5 @@ src/doxygen.log
 *.c.cbor
 # compile commands database
 **/compile_commands.json
+# cargo intermediary files
+**/target/*
