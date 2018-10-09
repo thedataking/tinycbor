@@ -283,15 +283,23 @@ pub unsafe extern "C" fn dumpFile(
 ) -> () {
     static mut chunklen: size_t = (16i32 * 1024i32) as size_t;
     static mut bufsize: size_t = 0i32 as size_t;
-    static mut buffer: *mut uint8_t = 0 as *const uint8_t as *mut uint8_t;
+    static mut buffer: &mut [uint8_t] = &mut [];
     let mut buflen: size_t = 0i32 as size_t;
     loop {
         if bufsize == buflen {
             bufsize = (bufsize as libc::c_ulong).wrapping_add(chunklen) as size_t as size_t;
-            buffer = xrealloc(buffer as *mut libc::c_void, bufsize, fname) as *mut uint8_t
+            let buf_ptr = if buffer.len() == 0 {
+                0 as *mut libc::c_void
+            } else {
+                buffer.as_mut_ptr() as *mut libc::c_void
+            };
+            let ret_ptr = xrealloc(buf_ptr, bufsize, fname);
+            buffer = std::slice::from_raw_parts_mut(ret_ptr as *mut uint8_t, bufsize as usize);
         }
+        let mut buf_ptr =  buffer.as_ptr().offset(buflen as isize) as *mut libc::c_void;
         let mut n: size_t = fread(
-            buffer.offset(buflen as isize) as *mut libc::c_void,
+            buf_ptr,
+
             1i32 as size_t,
             bufsize.wrapping_sub(buflen),
             in_0,
@@ -325,7 +333,7 @@ pub unsafe extern "C" fn dumpFile(
         flags: 0,
     };
     let mut err: CborError_0 =
-        cbor_parser_init(buffer, buflen, 0i32 as uint32_t, &mut parser, &mut value);
+        cbor_parser_init(buffer.as_mut_ptr(), buflen, 0i32 as uint32_t, &mut parser, &mut value);
     if 0 == err as u64 {
         if printJosn {
             err = cbor_value_to_json_advance(__stdoutp, &mut value, flags)
@@ -336,7 +344,7 @@ pub unsafe extern "C" fn dumpFile(
             puts(b"\x00" as *const u8 as *const libc::c_char);
         }
     }
-    if 0 == err as u64 && value.ptr != buffer.offset(buflen as isize) {
+    if 0 == err as u64 && value.ptr != buffer.as_mut_ptr().offset(buflen as isize) {
         err = CborErrorGarbageAtEnd
     }
     if 0 != err as u64 {

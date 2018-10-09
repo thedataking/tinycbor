@@ -13,6 +13,7 @@
 #![allow(mutable_transmutes)]
 #![allow(unused_mut)]
 
+#![feature(extern_prelude)] // TODO: not sure this is necessary in newer nightlies
 
 extern crate libc;
 
