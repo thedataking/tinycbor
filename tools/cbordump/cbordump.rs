@@ -245,25 +245,25 @@ pub const CborConvertAddMetadata: CborToJsonFlags = 1;
 ** THE SOFTWARE.
 **
 ****************************************************************************/
-#[no_mangle]
-pub unsafe extern "C" fn xrealloc(
-    mut old: *mut libc::c_void,
-    mut size: size_t,
-    mut fname: *const libc::c_char,
-) -> *mut libc::c_void {
-    old = realloc(old, size);
-    if old.is_null() {
-        fprintf(
-            __stderrp,
-            b"%s: %s\n\x00" as *const u8 as *const libc::c_char,
-            fname,
-            strerror(*__error()),
-        );
-        exit(1i32);
-    } else {
-        return old;
-    };
-}
+//#[no_mangle]
+//pub unsafe extern "C" fn xrealloc(
+//    mut old: *mut libc::c_void,
+//    mut size: size_t,
+//    mut fname: *const libc::c_char,
+//) -> *mut libc::c_void {
+//    old = realloc(old, size);
+//    if old.is_null() {
+//        fprintf(
+//            __stderrp,
+//            b"%s: %s\n\x00" as *const u8 as *const libc::c_char,
+//            fname,
+//            strerror(*__error()),
+//        );
+//        exit(1i32);
+//    } else {
+//        return old;
+//    };
+//}
 #[no_mangle]
 pub unsafe extern "C" fn printerror(mut err: CborError_0, mut fname: *const libc::c_char) -> () {
     fprintf(
@@ -283,18 +283,12 @@ pub unsafe extern "C" fn dumpFile(
 ) -> () {
     static mut chunklen: size_t = (16i32 * 1024i32) as size_t;
     static mut bufsize: size_t = 0i32 as size_t;
-    static mut buffer: &mut [uint8_t] = &mut [];
+    static mut buffer: Vec<uint8_t> = Vec::new();
     let mut buflen: size_t = 0i32 as size_t;
     loop {
         if bufsize == buflen {
             bufsize = (bufsize as libc::c_ulong).wrapping_add(chunklen) as size_t as size_t;
-            let buf_ptr = if buffer.len() == 0 {
-                0 as *mut libc::c_void
-            } else {
-                buffer.as_mut_ptr() as *mut libc::c_void
-            };
-            let ret_ptr = xrealloc(buf_ptr, bufsize, fname);
-            buffer = std::slice::from_raw_parts_mut(ret_ptr as *mut uint8_t, bufsize as usize);
+            buffer.reserve(bufsize as usize);
         }
         let mut buf_ptr =  buffer.as_ptr().offset(buflen as isize) as *mut libc::c_void;
         let mut n: size_t = fread(
