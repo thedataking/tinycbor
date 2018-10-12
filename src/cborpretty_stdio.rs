@@ -1,4 +1,5 @@
 use libc;
+use cborparser::CborValue;
 extern "C" {
     pub type __sFILEX;
     #[no_mangle]
@@ -8,7 +9,7 @@ extern "C" {
     fn cbor_value_to_pretty_stream(
         streamFunction: CborStreamFunction,
         token: *mut libc::c_void,
-        value: *mut CborValue_0,
+        value: *mut CborValue,
         flags: libc::c_int,
     ) -> CborError_0;
 }
@@ -116,24 +117,6 @@ pub const CborErrorUnknownLength: CborError = 2;
 pub const CborUnknownError: CborError = 1;
 pub const CborNoError: CborError = 0;
 pub type CborError_0 = CborError;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct CborParser {
-    pub end: *const uint8_t,
-    pub flags: uint32_t,
-}
-pub type CborParser_0 = CborParser;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct CborValue {
-    pub parser: *const CborParser_0,
-    pub ptr: *const uint8_t,
-    pub remaining: uint32_t,
-    pub extra: uint16_t,
-    pub type_0: uint8_t,
-    pub flags: uint8_t,
-}
-pub type CborValue_0 = CborValue;
 /* Human-readable (dump) API */
 pub type CborPrettyFlags = libc::c_uint;
 pub const CborPrettyDefaultFlags: CborPrettyFlags = 2;
@@ -151,16 +134,16 @@ pub type CborStreamFunction =
 #[no_mangle]
 pub unsafe extern "C" fn cbor_value_to_pretty_advance_flags(
     mut out: *mut FILE,
-    mut value: *mut CborValue_0,
+    mut value: *mut CborValue,
     mut flags: libc::c_int,
-) -> CborError_0 {
+) -> CborError {
     return cbor_value_to_pretty_stream(Some(cbor_fprintf), out as *mut libc::c_void, value, flags);
 }
 #[no_mangle]
 pub unsafe extern "C" fn cbor_value_to_pretty_advance(
     mut out: *mut FILE,
-    mut value: *mut CborValue_0,
-) -> CborError_0 {
+    mut value: *mut CborValue,
+) -> CborError {
     return cbor_value_to_pretty_stream(
         Some(cbor_fprintf),
         out as *mut libc::c_void,

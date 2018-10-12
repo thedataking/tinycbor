@@ -1,4 +1,7 @@
 use libc;
+use cborparser::cbor_parser_init;
+use cborparser::CborParser;
+use cborparser::CborValue;
 extern "C" {
     pub type __sFILEX;
     #[no_mangle]
@@ -32,25 +35,25 @@ extern "C" {
     fn puts(_: *const libc::c_char) -> libc::c_int;
     #[no_mangle]
     fn cbor_error_string(error: CborError_0) -> *const libc::c_char;
-    #[no_mangle]
-    fn cbor_parser_init(
-        buffer: *const uint8_t,
-        size: size_t,
-        flags: uint32_t,
-        parser: *mut CborParser_0,
-        it: *mut CborValue_0,
-    ) -> CborError_0;
+//    #[no_mangle]
+//    fn cbor_parser_init(
+//        buffer: *const uint8_t,
+//        size: size_t,
+//        flags: uint32_t,
+//        parser: *mut CborParser,
+//        it: *mut CborValue,
+//    ) -> CborError_0;
     /* The following API requires a hosted C implementation (uses FILE*) */
     #[no_mangle]
     fn cbor_value_to_pretty_advance_flags(
         out: *mut FILE,
-        value: *mut CborValue_0,
+        value: *mut CborValue,
         flags: libc::c_int,
     ) -> CborError_0;
     #[no_mangle]
     fn cbor_value_to_json_advance(
         out: *mut FILE,
-        value: *mut CborValue_0,
+        value: *mut CborValue,
         flags: libc::c_int,
     ) -> CborError_0;
     #[no_mangle]
@@ -160,24 +163,6 @@ pub const CborErrorUnknownLength: CborError = 2;
 pub const CborUnknownError: CborError = 1;
 pub const CborNoError: CborError = 0;
 pub type CborError_0 = CborError;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct CborParser {
-    pub end: *const uint8_t,
-    pub flags: uint32_t,
-}
-pub type CborParser_0 = CborParser;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct CborValue {
-    pub parser: *const CborParser_0,
-    pub ptr: *const uint8_t,
-    pub remaining: uint32_t,
-    pub extra: uint16_t,
-    pub type_0: uint8_t,
-    pub flags: uint8_t,
-}
-pub type CborValue_0 = CborValue;
 /* Human-readable (dump) API */
 pub type CborPrettyFlags = libc::c_uint;
 pub const CborPrettyDefaultFlags: CborPrettyFlags = 2;
@@ -314,20 +299,25 @@ pub unsafe extern "C" fn dumpFile(
             break;
         }
     }
-    let mut parser: CborParser_0 = CborParser {
+    let mut parser: CborParser = CborParser {
         end: 0 as *const uint8_t,
         flags: 0,
     };
-    let mut value: CborValue_0 = CborValue {
-        parser: 0 as *const CborParser_0,
-        ptr: 0 as *const uint8_t,
+    let mut value: CborValue = CborValue {
+        parser: 0 as *const CborParser,
+        ptr: buffer.as_ptr(),
         remaining: 0,
         extra: 0,
         type_0: 0,
         flags: 0,
     };
     let mut err: CborError_0 =
-        cbor_parser_init(buffer.as_mut_ptr(), buflen, 0i32 as uint32_t, &mut parser, &mut value);
+        cbor_parser_init(
+            &mut buffer,
+            buflen,
+            0i32 as uint32_t,
+            &mut parser,
+            &mut value);
     if 0 == err as u64 {
         if printJosn {
             err = cbor_value_to_json_advance(__stdoutp, &mut value, flags)
