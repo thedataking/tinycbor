@@ -299,10 +299,6 @@ pub unsafe extern "C" fn dumpFile(
             break;
         }
     }
-    let mut parser: CborParser = CborParser {
-        end: 0 as *const uint8_t,
-        flags: 0,
-    };
     let mut value: CborValue = CborValue {
         parser: 0 as *const CborParser,
         ptr: buffer.as_ptr(),
@@ -316,7 +312,7 @@ pub unsafe extern "C" fn dumpFile(
             &mut buffer,
             buflen,
             0i32 as uint32_t,
-            &mut parser,
+//            &mut parser,
             &mut value);
     if 0 == err as u64 {
         if printJosn {

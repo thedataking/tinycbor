@@ -138,6 +138,9 @@ pub struct CborValue {
     pub type_0: uint8_t,
     pub flags: uint8_t,
 }
+//impl CborValue {
+////    pub fn ptr(&self) -> *const uint8_t { self._ptr }
+//}
 pub const Value16Bit: unnamed = 25;
 pub const Value8Bit: unnamed = 24;
 pub const Break: CborSimpleTypes = 31;
@@ -196,17 +199,14 @@ pub unsafe extern "C" fn cbor_parser_init(
     mut buffer: &mut Vec<uint8_t>,
     mut size: size_t,
     mut flags: uint32_t,
-    mut parser: *mut CborParser,
+//    mut parser: *mut CborParser,
     mut it: *mut CborValue,
 ) -> CborError_0 {
-    memset(
-        parser as *mut libc::c_void,
-        0i32,
-        ::std::mem::size_of::<CborParser>() as libc::c_ulong,
-    );
-    (*parser).end = buffer.as_ptr().offset(size as isize);
-    (*parser).flags = flags;
-    (*it).parser = parser;
+    let mut parser: CborParser = CborParser {
+        end: buffer.as_ptr().offset(size as isize),
+        flags: flags,
+    };
+    (*it).parser = &parser;
     (*it).ptr = buffer.as_ptr();
     /* there's one type altogether, usually an array or map */
     (*it).remaining = 1i32 as uint32_t;
