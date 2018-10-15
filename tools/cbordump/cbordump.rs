@@ -299,21 +299,11 @@ pub unsafe extern "C" fn dumpFile(
             break;
         }
     }
-    let mut value: CborValue = CborValue {
-        parser: 0 as *const CborParser,
-        ptr: buffer.as_ptr(),
-        remaining: 0,
-        extra: 0,
-        type_0: 0,
-        flags: 0,
-    };
-    let mut err: CborError_0 =
+    let (mut value, mut err) =
         cbor_parser_init(
             &mut buffer,
             buflen,
-            0i32 as uint32_t,
-//            &mut parser,
-            &mut value);
+            0i32 as uint32_t);
     if 0 == err as u64 {
         if printJosn {
             err = cbor_value_to_json_advance(__stdoutp, &mut value, flags)

@@ -199,18 +199,23 @@ pub unsafe extern "C" fn cbor_parser_init(
     mut buffer: &mut Vec<uint8_t>,
     mut size: size_t,
     mut flags: uint32_t,
-//    mut parser: *mut CborParser,
-    mut it: *mut CborValue,
-) -> CborError_0 {
+) -> (CborValue, CborError_0) {
     let mut parser: CborParser = CborParser {
         end: buffer.as_ptr().offset(size as isize),
-        flags: flags,
+        flags,
     };
-    (*it).parser = &parser;
-    (*it).ptr = buffer.as_ptr();
-    /* there's one type altogether, usually an array or map */
-    (*it).remaining = 1i32 as uint32_t;
-    return preparse_value(it);
+    let mut it: CborValue = CborValue {
+        parser: &parser,
+        ptr: buffer.as_ptr(),
+        /* there's one type altogether, usually an array or map */
+        remaining: 1i32 as uint32_t,
+        /* may be initalized in `preparse_value` in C version */
+        extra: 0,
+        type_0: 0,
+        flags: 0,
+    };
+    let err = preparse_value(&mut it);
+    return (it, err)
 }
 unsafe extern "C" fn preparse_value(mut it: *mut CborValue) -> CborError_0 {
     let mut current_block: u64;
