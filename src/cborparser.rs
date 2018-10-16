@@ -133,7 +133,7 @@ pub struct CborValue<'a> {
     pub parser: *const CborParser,
     pub ptr: *const uint8_t,
     pub idx: usize,
-    pub vec: Option<&'a[uint8_t]>,
+    pub vec: &'a[uint8_t],
     pub remaining: uint32_t,
     pub extra: uint16_t,
     pub type_0: uint8_t,
@@ -145,7 +145,7 @@ impl<'a> CborValue<'a> {
             parser: 0 as *const CborParser,
             ptr: 0 as *const uint8_t,
             idx: 0 as usize,
-            vec: None,
+            vec: &[],
             remaining: 0,
             extra: 0,
             type_0: 0,
@@ -155,10 +155,7 @@ impl<'a> CborValue<'a> {
 
     /// True iff `idx` is one element beyond end of `vec`
     pub fn at_end(&self) -> bool {
-        if let Some(buf) = self.vec {
-            return self.idx == buf.len()
-        }
-        panic!("CborValue holds no buffer");
+        self.idx == self.vec.len()
     }
 }
 pub const Value16Bit: unnamed = 25;
@@ -228,7 +225,7 @@ pub unsafe extern "C" fn cbor_parser_init(
         parser: &parser,
         ptr: buffer.as_ptr(),
         idx: 0,
-        vec: Some(buffer.as_slice()),
+        vec: buffer.as_slice(),
         /* there's one type altogether, usually an array or map */
         remaining: 1i32 as uint32_t,
         /* may be initalized in `preparse_value` in C version */
