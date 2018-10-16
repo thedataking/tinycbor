@@ -539,7 +539,7 @@ unsafe extern "C" fn advance_recursive(
             it,
             0 as *mut libc::c_void,
             &mut len,
-            Some(it));
+            None); // was `Some(it)`
     } else if nestingLevel == 0i32 {
         return CborErrorNestingTooDeep;
     } else {
@@ -747,7 +747,7 @@ unsafe extern "C" fn get32(mut ptr: *const uint8_t) -> uint32_t {
 }
 #[no_mangle]
 pub unsafe extern "C" fn _cbor_value_copy_string<'a>(
-    mut value: &CborValue<'a>,
+    value: &CborValue<'a>,
     mut buffer: *mut libc::c_void,
     mut buflen: *mut size_t,
     mut next: Option<&mut CborValue<'a>>,
@@ -788,7 +788,7 @@ unsafe extern "C" fn iterate_memcpy(
     return memcpy(dest as *mut libc::c_void, src as *const libc::c_void, len) as uintptr_t;
 }
 unsafe extern "C" fn iterate_string_chunks<'a>(
-    mut value: &CborValue<'a>,
+    value: &CborValue<'a>,
     mut buffer: *mut libc::c_char,
     mut buflen: *mut size_t,
     mut result: *mut bool,
@@ -1324,7 +1324,7 @@ pub unsafe extern "C" fn cbor_value_map_find_value<'a>(
                     string as uintptr_t as *mut libc::c_char,
                     &mut dummyLen,
                     &mut equals,
-                    Some(element),
+                    None, // was `Some(element)`
                     Some(iterate_memcmp),
                 );
                 if 0 != err as u64 {
