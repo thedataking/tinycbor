@@ -125,6 +125,7 @@ pub const CborIteratorFlag_IntegerValueTooLarge: CborParserIteratorFlags = 1;
 #[repr(C)]
 pub struct CborParser {
     pub end: *const uint8_t,
+//    pub len: usize,
     pub flags: uint32_t,
 }
 #[derive(Copy, Clone)]
@@ -135,7 +136,9 @@ pub struct CborValue {
     pub remaining: uint32_t,
     pub extra: uint16_t,
     pub type_0: uint8_t,
+//    pub idx: usize,
     pub flags: uint8_t,
+
 }
 //impl CborValue {
 ////    pub fn ptr(&self) -> *const uint8_t { self._ptr }

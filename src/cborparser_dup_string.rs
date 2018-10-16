@@ -1,4 +1,5 @@
 use libc;
+use cborparser::CborValue;
 extern "C" {
     #[no_mangle]
     fn __assert_rtn(
@@ -9,11 +10,11 @@ extern "C" {
     ) -> !;
     #[no_mangle]
     fn _cbor_value_copy_string(
-        value: *const CborValue_0,
+        value: *const CborValue,
         buffer: *mut libc::c_void,
         buflen: *mut size_t,
-        next: *mut CborValue_0,
-    ) -> CborError_0;
+        next: *mut CborValue,
+    ) -> CborError;
     #[no_mangle]
     fn free(_: *mut libc::c_void) -> ();
     #[no_mangle]
@@ -71,33 +72,15 @@ pub const CborErrorUnknownLength: CborError = 2;
 /* errors in all modes */
 pub const CborUnknownError: CborError = 1;
 pub const CborNoError: CborError = 0;
-pub type CborError_0 = CborError;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct CborParser {
-    pub end: *const uint8_t,
-    pub flags: uint32_t,
-}
-pub type CborParser_0 = CborParser;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct CborValue {
-    pub parser: *const CborParser_0,
-    pub ptr: *const uint8_t,
-    pub remaining: uint32_t,
-    pub extra: uint16_t,
-    pub type_0: uint8_t,
-    pub flags: uint8_t,
-}
-pub type CborValue_0 = CborValue;
+
 #[no_mangle]
 pub unsafe extern "C" fn _cbor_value_dup_string(
-    mut value: *const CborValue_0,
+    mut value: *const CborValue,
     mut buffer: *mut *mut libc::c_void,
     mut buflen: *mut size_t,
-    mut next: *mut CborValue_0,
-) -> CborError_0 {
-    let mut err: CborError_0 = CborNoError;
+    mut next: *mut CborValue,
+) -> CborError {
+    let mut err: CborError = CborNoError;
     if 0 != buffer.is_null() as libc::c_int as libc::c_long {
         __assert_rtn(
             (*::std::mem::transmute::<&[u8; 23], &[libc::c_char; 23]>(
@@ -121,7 +104,7 @@ pub unsafe extern "C" fn _cbor_value_dup_string(
     } else {
     };
     *buflen = 18446744073709551615u64;
-    err = _cbor_value_copy_string(value, 0 as *mut libc::c_void, buflen, 0 as *mut CborValue_0);
+    err = _cbor_value_copy_string(value, 0 as *mut libc::c_void, buflen, 0 as *mut CborValue);
     if 0 != err as u64 {
         return err;
     } else {

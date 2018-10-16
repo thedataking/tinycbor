@@ -1,6 +1,5 @@
 use libc;
 use cborparser::cbor_parser_init;
-use cborparser::CborParser;
 use cborparser::CborValue;
 extern "C" {
     pub type __sFILEX;

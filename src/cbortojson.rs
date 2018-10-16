@@ -1,4 +1,6 @@
 use libc;
+use cborparser::CborValue;
+use cborparser::CborParser;
 extern "C" {
     pub type __sFILEX;
     #[no_mangle]
@@ -23,45 +25,45 @@ extern "C" {
     #[no_mangle]
     fn open_memstream(__bufp: *mut *mut libc::c_char, __sizep: *mut size_t) -> *mut FILE;
     #[no_mangle]
-    fn cbor_value_advance_fixed(it: *mut CborValue_0) -> CborError_0;
+    fn cbor_value_advance_fixed(it: *mut CborValue) -> CborError_0;
     #[no_mangle]
     fn cbor_value_enter_container(
-        it: *const CborValue_0,
-        recursed: *mut CborValue_0,
+        it: *const CborValue,
+        recursed: *mut CborValue,
     ) -> CborError_0;
     #[no_mangle]
     fn cbor_value_leave_container(
-        it: *mut CborValue_0,
-        recursed: *const CborValue_0,
+        it: *mut CborValue,
+        recursed: *const CborValue,
     ) -> CborError_0;
     #[no_mangle]
-    fn _cbor_value_decode_int64_internal(value: *const CborValue_0) -> uint64_t;
+    fn _cbor_value_decode_int64_internal(value: *const CborValue) -> uint64_t;
     #[no_mangle]
     fn _cbor_value_copy_string(
-        value: *const CborValue_0,
+        value: *const CborValue,
         buffer: *mut libc::c_void,
         buflen: *mut size_t,
-        next: *mut CborValue_0,
+        next: *mut CborValue,
     ) -> CborError_0;
     #[no_mangle]
     fn _cbor_value_dup_string(
-        value: *const CborValue_0,
+        value: *const CborValue,
         buffer: *mut *mut libc::c_void,
         buflen: *mut size_t,
-        next: *mut CborValue_0,
+        next: *mut CborValue,
     ) -> CborError_0;
     #[no_mangle]
     fn cbor_value_calculate_string_length(
-        value: *const CborValue_0,
+        value: *const CborValue,
         length: *mut size_t,
     ) -> CborError_0;
     #[no_mangle]
     fn cbor_value_get_half_float(
-        value: *const CborValue_0,
+        value: *const CborValue,
         result: *mut libc::c_void,
     ) -> CborError_0;
     #[no_mangle]
-    fn cbor_value_to_pretty_advance(out: *mut FILE, value: *mut CborValue_0) -> CborError_0;
+    fn cbor_value_to_pretty_advance(out: *mut FILE, value: *mut CborValue) -> CborError_0;
     #[no_mangle]
     fn __fpclassifyl(_: libc::c_double) -> libc::c_int;
     #[no_mangle]
@@ -244,24 +246,6 @@ pub const CborIteratorFlag_UnknownLength: CborParserIteratorFlags = 4;
 pub const CborIteratorFlag_IteratingStringChunks: CborParserIteratorFlags = 2;
 pub const CborIteratorFlag_NegativeInteger: CborParserIteratorFlags = 2;
 pub const CborIteratorFlag_IntegerValueTooLarge: CborParserIteratorFlags = 1;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct CborParser {
-    pub end: *const uint8_t,
-    pub flags: uint32_t,
-}
-pub type CborParser_0 = CborParser;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct CborValue {
-    pub parser: *const CborParser_0,
-    pub ptr: *const uint8_t,
-    pub remaining: uint32_t,
-    pub extra: uint16_t,
-    pub type_0: uint8_t,
-    pub flags: uint8_t,
-}
-pub type CborValue_0 = CborValue;
 /* ***************************************************************************
 **
 ** Copyright (C) 2015 Intel Corporation
@@ -440,10 +424,10 @@ pub const FinalTypeMask: ConversionStatusFlags = 255;
  * the keys for the metadata clash with existing keys in the JSON map.
  */
 pub type ConversionStatusFlags = libc::c_uint;
-unsafe extern "C" fn cbor_value_at_end(mut it: *const CborValue_0) -> bool {
+unsafe extern "C" fn cbor_value_at_end(mut it: *const CborValue) -> bool {
     return (*it).remaining == 0i32 as libc::c_uint;
 }
-unsafe extern "C" fn _cbor_value_extract_int64_helper(mut value: *const CborValue_0) -> uint64_t {
+unsafe extern "C" fn _cbor_value_extract_int64_helper(mut value: *const CborValue) -> uint64_t {
     return if 0
         != (*value).flags as libc::c_int & CborIteratorFlag_IntegerValueTooLarge as libc::c_int
     {
@@ -452,15 +436,15 @@ unsafe extern "C" fn _cbor_value_extract_int64_helper(mut value: *const CborValu
         (*value).extra as libc::c_ulonglong
     };
 }
-unsafe extern "C" fn cbor_value_get_type(mut value: *const CborValue_0) -> CborType_0 {
+unsafe extern "C" fn cbor_value_get_type(mut value: *const CborValue) -> CborType_0 {
     return (*value).type_0 as CborType_0;
 }
 /* Booleans */
-unsafe extern "C" fn cbor_value_is_boolean(mut value: *const CborValue_0) -> bool {
+unsafe extern "C" fn cbor_value_is_boolean(mut value: *const CborValue) -> bool {
     return (*value).type_0 as libc::c_int == CborBooleanType as libc::c_int;
 }
 unsafe extern "C" fn cbor_value_get_boolean(
-    mut value: *const CborValue_0,
+    mut value: *const CborValue,
     mut result: *mut bool,
 ) -> CborError_0 {
     if 0 != !cbor_value_is_boolean(value) as libc::c_int as libc::c_long {
@@ -478,11 +462,11 @@ unsafe extern "C" fn cbor_value_get_boolean(
     return CborNoError;
 }
 /* Simple types */
-unsafe extern "C" fn cbor_value_is_simple_type(mut value: *const CborValue_0) -> bool {
+unsafe extern "C" fn cbor_value_is_simple_type(mut value: *const CborValue) -> bool {
     return (*value).type_0 as libc::c_int == CborSimpleType as libc::c_int;
 }
 unsafe extern "C" fn cbor_value_get_simple_type(
-    mut value: *const CborValue_0,
+    mut value: *const CborValue,
     mut result: *mut uint8_t,
 ) -> CborError_0 {
     if 0 != !cbor_value_is_simple_type(value) as libc::c_int as libc::c_long {
@@ -500,15 +484,15 @@ unsafe extern "C" fn cbor_value_get_simple_type(
     return CborNoError;
 }
 /* Integers */
-unsafe extern "C" fn cbor_value_is_integer(mut value: *const CborValue_0) -> bool {
+unsafe extern "C" fn cbor_value_is_integer(mut value: *const CborValue) -> bool {
     return (*value).type_0 as libc::c_int == CborIntegerType as libc::c_int;
 }
-unsafe extern "C" fn cbor_value_is_negative_integer(mut value: *const CborValue_0) -> bool {
+unsafe extern "C" fn cbor_value_is_negative_integer(mut value: *const CborValue) -> bool {
     return 0 != cbor_value_is_integer(value) as libc::c_int
         && 0 != (*value).flags as libc::c_int & CborIteratorFlag_NegativeInteger as libc::c_int;
 }
 unsafe extern "C" fn cbor_value_get_raw_integer(
-    mut value: *const CborValue_0,
+    mut value: *const CborValue,
     mut result: *mut uint64_t,
 ) -> CborError_0 {
     if 0 != !cbor_value_is_integer(value) as libc::c_int as libc::c_long {
@@ -526,11 +510,11 @@ unsafe extern "C" fn cbor_value_get_raw_integer(
     return CborNoError;
 }
 /* Tags */
-unsafe extern "C" fn cbor_value_is_tag(mut value: *const CborValue_0) -> bool {
+unsafe extern "C" fn cbor_value_is_tag(mut value: *const CborValue) -> bool {
     return (*value).type_0 as libc::c_int == CborTagType as libc::c_int;
 }
 unsafe extern "C" fn cbor_value_get_tag(
-    mut value: *const CborValue_0,
+    mut value: *const CborValue,
     mut result: *mut CborTag,
 ) -> CborError_0 {
     if 0 != !cbor_value_is_tag(value) as libc::c_int as libc::c_long {
@@ -547,17 +531,17 @@ unsafe extern "C" fn cbor_value_get_tag(
     return CborNoError;
 }
 /* Strings */
-unsafe extern "C" fn cbor_value_is_byte_string(mut value: *const CborValue_0) -> bool {
+unsafe extern "C" fn cbor_value_is_byte_string(mut value: *const CborValue) -> bool {
     return (*value).type_0 as libc::c_int == CborByteStringType as libc::c_int;
 }
-unsafe extern "C" fn cbor_value_is_text_string(mut value: *const CborValue_0) -> bool {
+unsafe extern "C" fn cbor_value_is_text_string(mut value: *const CborValue) -> bool {
     return (*value).type_0 as libc::c_int == CborTextStringType as libc::c_int;
 }
 unsafe extern "C" fn cbor_value_copy_byte_string(
-    mut value: *const CborValue_0,
+    mut value: *const CborValue,
     mut buffer: *mut uint8_t,
     mut buflen: *mut size_t,
-    mut next: *mut CborValue_0,
+    mut next: *mut CborValue,
 ) -> CborError_0 {
     if 0 != !cbor_value_is_byte_string(value) as libc::c_int as libc::c_long {
         __assert_rtn(
@@ -573,10 +557,10 @@ unsafe extern "C" fn cbor_value_copy_byte_string(
     return _cbor_value_copy_string(value, buffer as *mut libc::c_void, buflen, next);
 }
 unsafe extern "C" fn cbor_value_dup_text_string(
-    mut value: *const CborValue_0,
+    mut value: *const CborValue,
     mut buffer: *mut *mut libc::c_char,
     mut buflen: *mut size_t,
-    mut next: *mut CborValue_0,
+    mut next: *mut CborValue,
 ) -> CborError_0 {
     if 0 != !cbor_value_is_text_string(value) as libc::c_int as libc::c_long {
         __assert_rtn(
@@ -591,11 +575,11 @@ unsafe extern "C" fn cbor_value_dup_text_string(
     };
     return _cbor_value_dup_string(value, buffer as *mut *mut libc::c_void, buflen, next);
 }
-unsafe extern "C" fn cbor_value_is_float(mut value: *const CborValue_0) -> bool {
+unsafe extern "C" fn cbor_value_is_float(mut value: *const CborValue) -> bool {
     return (*value).type_0 as libc::c_int == CborFloatType as libc::c_int;
 }
 unsafe extern "C" fn cbor_value_get_float(
-    mut value: *const CborValue_0,
+    mut value: *const CborValue,
     mut result: *mut libc::c_float,
 ) -> CborError_0 {
     let mut data: uint32_t = 0;
@@ -631,11 +615,11 @@ unsafe extern "C" fn cbor_value_get_float(
     );
     return CborNoError;
 }
-unsafe extern "C" fn cbor_value_is_double(mut value: *const CborValue_0) -> bool {
+unsafe extern "C" fn cbor_value_is_double(mut value: *const CborValue) -> bool {
     return (*value).type_0 as libc::c_int == CborDoubleType as libc::c_int;
 }
 unsafe extern "C" fn cbor_value_get_double(
-    mut value: *const CborValue_0,
+    mut value: *const CborValue,
     mut result: *mut libc::c_double,
 ) -> CborError_0 {
     let mut data: uint64_t = 0;
@@ -676,7 +660,7 @@ unsafe extern "C" fn cbor_value_get_double(
 #[no_mangle]
 pub unsafe extern "C" fn cbor_value_to_json_advance(
     mut out: *mut FILE,
-    mut value: *mut CborValue_0,
+    mut value: *mut CborValue,
     mut flags: libc::c_int,
 ) -> CborError_0 {
     let mut status: ConversionStatus = ConversionStatus_0 {
@@ -688,7 +672,7 @@ pub unsafe extern "C" fn cbor_value_to_json_advance(
 }
 unsafe extern "C" fn value_to_json(
     mut out: *mut FILE,
-    mut it: *mut CborValue_0,
+    mut it: *mut CborValue,
     mut flags: libc::c_int,
     mut type_0: CborType_0,
     mut status: *mut ConversionStatus,
@@ -703,8 +687,8 @@ unsafe extern "C" fn value_to_json(
     match type_0 as libc::c_uint {
         128 | 160 => {
             /* recursive type */
-            let mut recursed: CborValue_0 = CborValue {
-                parser: 0 as *const CborParser_0,
+            let mut recursed: CborValue = CborValue {
+                parser: 0 as *const CborParser,
                 ptr: 0 as *const uint8_t,
                 remaining: 0,
                 extra: 0,
@@ -964,7 +948,7 @@ unsafe extern "C" fn decode_half(mut half: libc::c_ushort) -> libc::c_double {
 }
 unsafe extern "C" fn tagged_value_to_json(
     mut out: *mut FILE,
-    mut it: *mut CborValue_0,
+    mut it: *mut CborValue,
     mut flags: libc::c_int,
     mut status: *mut ConversionStatus,
 ) -> CborError_0 {
@@ -1068,7 +1052,7 @@ unsafe extern "C" fn tagged_value_to_json(
 }
 unsafe extern "C" fn dump_bytestring_base16(
     mut result: *mut *mut libc::c_char,
-    mut it: *mut CborValue_0,
+    mut it: *mut CborValue,
 ) -> CborError_0 {
     static mut characters: [libc::c_char; 17] = [
         48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 0,
@@ -1118,7 +1102,7 @@ unsafe extern "C" fn dump_bytestring_base16(
 }
 unsafe extern "C" fn dump_bytestring_base64(
     mut result: *mut *mut libc::c_char,
-    mut it: *mut CborValue_0,
+    mut it: *mut CborValue,
 ) -> CborError_0 {
     static mut alphabet: [libc::c_char; 66] = [
         65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86,
@@ -1130,7 +1114,7 @@ unsafe extern "C" fn dump_bytestring_base64(
 }
 unsafe extern "C" fn generic_dump_base64(
     mut result: *mut *mut libc::c_char,
-    mut it: *mut CborValue_0,
+    mut it: *mut CborValue,
     mut alphabet: *const libc::c_char,
 ) -> CborError_0 {
     let mut n: size_t = 0i32 as size_t;
@@ -1234,7 +1218,7 @@ unsafe extern "C" fn generic_dump_base64(
 }
 unsafe extern "C" fn dump_bytestring_base64url(
     mut result: *mut *mut libc::c_char,
-    mut it: *mut CborValue_0,
+    mut it: *mut CborValue,
 ) -> CborError_0 {
     static mut alphabet: [libc::c_char; 65] = 
     [
@@ -1246,7 +1230,7 @@ unsafe extern "C" fn dump_bytestring_base64url(
     return generic_dump_base64(result, it, alphabet.as_ptr());
 }
 unsafe extern "C" fn find_tagged_type(
-    mut it: *mut CborValue_0,
+    mut it: *mut CborValue,
     mut tag: *mut CborTag,
     mut type_0: *mut CborType_0,
 ) -> CborError_0 {
@@ -1351,7 +1335,7 @@ unsafe extern "C" fn add_value_metadata(
 }
 unsafe extern "C" fn map_to_json(
     mut out: *mut FILE,
-    mut it: *mut CborValue_0,
+    mut it: *mut CborValue,
     mut flags: libc::c_int,
     mut status: *mut ConversionStatus,
 ) -> CborError_0 {
@@ -1425,7 +1409,7 @@ unsafe extern "C" fn map_to_json(
 }
 unsafe extern "C" fn stringify_map_key(
     mut key: *mut *mut libc::c_char,
-    mut it: *mut CborValue_0,
+    mut it: *mut CborValue,
     mut flags: libc::c_int,
     mut type_0: CborType_0,
 ) -> CborError_0 {
@@ -1447,7 +1431,7 @@ unsafe extern "C" fn stringify_map_key(
 }
 unsafe extern "C" fn array_to_json(
     mut out: *mut FILE,
-    mut it: *mut CborValue_0,
+    mut it: *mut CborValue,
     mut flags: libc::c_int,
     mut status: *mut ConversionStatus,
 ) -> CborError_0 {
