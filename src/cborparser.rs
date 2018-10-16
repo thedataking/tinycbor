@@ -133,16 +133,25 @@ pub struct CborParser {
 pub struct CborValue {
     pub parser: *const CborParser,
     pub ptr: *const uint8_t,
+    pub idx: usize,
     pub remaining: uint32_t,
     pub extra: uint16_t,
     pub type_0: uint8_t,
-//    pub idx: usize,
     pub flags: uint8_t,
-
 }
-//impl CborValue {
-////    pub fn ptr(&self) -> *const uint8_t { self._ptr }
-//}
+impl CborValue {
+    pub fn new() -> CborValue {
+        CborValue {
+            parser: 0 as *const CborParser,
+            ptr: 0 as *const uint8_t,
+            idx: 0 as usize,
+            remaining: 0,
+            extra: 0,
+            type_0: 0,
+            flags: 0,
+        }
+    }
+}
 pub const Value16Bit: unnamed = 25;
 pub const Value8Bit: unnamed = 24;
 pub const Break: CborSimpleTypes = 31;
@@ -209,6 +218,7 @@ pub unsafe extern "C" fn cbor_parser_init(
     let mut it: CborValue = CborValue {
         parser: &parser,
         ptr: buffer.as_ptr(),
+        idx: 0,
         /* there's one type altogether, usually an array or map */
         remaining: 1i32 as uint32_t,
         /* may be initalized in `preparse_value` in C version */
@@ -517,14 +527,7 @@ unsafe extern "C" fn advance_recursive(
     mut nestingLevel: libc::c_int,
 ) -> CborError {
     let mut err: CborError = CborNoError;
-    let mut recursed: CborValue = CborValue {
-        parser: 0 as *const CborParser,
-        ptr: 0 as *const uint8_t,
-        remaining: 0,
-        extra: 0,
-        type_0: 0,
-        flags: 0,
-    };
+    let mut recursed = CborValue::new();
     if is_fixed_type((*it).type_0) {
         return advance_internal(it);
     } else if !cbor_value_is_container(it) {
@@ -787,14 +790,7 @@ unsafe extern "C" fn iterate_string_chunks(
 ) -> CborError {
     let mut nul: [uint8_t; 1] = [0; 1];
     let mut err: CborError = CborNoError;
-    let mut tmp: CborValue = CborValue {
-        parser: 0 as *const CborParser,
-        ptr: 0 as *const uint8_t,
-        remaining: 0,
-        extra: 0,
-        type_0: 0,
-        flags: 0,
-    };
+    let mut tmp= CborValue::new();
     let mut total: size_t = 0i32 as size_t;
     let mut ptr: *const libc::c_void = 0 as *const libc::c_void;
     if 0 != !(0 != cbor_value_is_byte_string(value) as libc::c_int
@@ -1424,14 +1420,7 @@ pub unsafe extern "C" fn _cbor_value_get_string_chunk(
     mut len: *mut size_t,
     mut next: *mut CborValue,
 ) -> CborError {
-    let mut tmp: CborValue = CborValue {
-        parser: 0 as *const CborParser,
-        ptr: 0 as *const uint8_t,
-        remaining: 0,
-        extra: 0,
-        type_0: 0,
-        flags: 0,
-    };
+    let mut tmp= CborValue::new();
     if next.is_null() {
         next = &mut tmp
     }

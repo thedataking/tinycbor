@@ -687,14 +687,7 @@ unsafe extern "C" fn value_to_json(
     match type_0 as libc::c_uint {
         128 | 160 => {
             /* recursive type */
-            let mut recursed: CborValue = CborValue {
-                parser: 0 as *const CborParser,
-                ptr: 0 as *const uint8_t,
-                remaining: 0,
-                extra: 0,
-                type_0: 0,
-                flags: 0,
-            };
+            let mut recursed: CborValue = CborValue::new();
             err = cbor_value_enter_container(it, &mut recursed);
             if 0 != err as u64 {
                 (*it).ptr = recursed.ptr;

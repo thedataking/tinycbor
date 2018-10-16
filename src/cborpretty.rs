@@ -407,14 +407,7 @@ unsafe extern "C" fn value_to_pretty(
     match type_0 as libc::c_uint {
         128 | 160 => {
             /* recursive type */
-            let mut recursed: CborValue = CborValue {
-                parser: 0 as *const CborParser,
-                ptr: 0 as *const uint8_t,
-                remaining: 0,
-                extra: 0,
-                type_0: 0,
-                flags: 0,
-            };
+            let mut recursed: CborValue = CborValue::new();
             let mut indicator: *const libc::c_char = get_indicator(it, flags);
             let mut space: *const libc::c_char = if 0 != *indicator as libc::c_int {
                 b" \x00" as *const u8 as *const libc::c_char
