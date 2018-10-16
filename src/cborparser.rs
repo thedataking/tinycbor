@@ -125,7 +125,6 @@ pub const CborIteratorFlag_IntegerValueTooLarge: CborParserIteratorFlags = 1;
 #[repr(C)]
 pub struct CborParser {
     pub end: *const uint8_t,
-//    pub len: usize,
     pub flags: uint32_t,
 }
 #[derive(Copy, Clone)]
@@ -152,6 +151,14 @@ impl<'a> CborValue<'a> {
             type_0: 0,
             flags: 0,
         }
+    }
+
+    /// True iff `idx` is one element beyond end of `vec`
+    pub fn at_end(&self) -> bool {
+        if let Some(buf) = self.vec {
+            return self.idx == buf.len()
+        }
+        panic!("CborValue holds no buffer");
     }
 }
 pub const Value16Bit: unnamed = 25;

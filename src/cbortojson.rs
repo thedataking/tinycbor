@@ -1,6 +1,5 @@
 use libc;
 use cborparser::CborValue;
-use cborparser::CborParser;
 extern "C" {
     pub type __sFILEX;
     #[no_mangle]

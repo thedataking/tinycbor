@@ -1,6 +1,5 @@
 use libc;
 use cborparser::CborValue;
-use cborparser::CborParser;
 extern "C" {
     #[no_mangle]
     fn __assert_rtn(

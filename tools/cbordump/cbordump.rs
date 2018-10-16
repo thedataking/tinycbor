@@ -313,7 +313,7 @@ pub unsafe extern "C" fn dumpFile(
             puts(b"\x00" as *const u8 as *const libc::c_char);
         }
     }
-    if 0 == err as u64 && value.ptr != buffer.as_mut_ptr().offset(buflen as isize) {
+    if 0 == err as u64 && !value.at_end() {
         err = CborErrorGarbageAtEnd
     }
     if 0 != err as u64 {
