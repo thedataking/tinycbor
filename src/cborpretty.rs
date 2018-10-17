@@ -430,6 +430,7 @@ unsafe extern "C" fn value_to_pretty(
                 err = cbor_value_enter_container(it, &mut recursed);
                 if 0 != err as u64 {
                     (*it).ptr = recursed.ptr;
+                    (*it).idx = recursed.idx;
                     /* parse error */
                     return err;
                 } else {
@@ -443,6 +444,7 @@ unsafe extern "C" fn value_to_pretty(
                     );
                     if 0 != err as u64 {
                         (*it).ptr = recursed.ptr;
+                        (*it).idx= recursed.idx;
                         /* parse error */
                         return err;
                     } else {

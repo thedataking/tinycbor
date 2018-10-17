@@ -277,7 +277,6 @@ pub unsafe extern "C" fn dumpFile(
         let mut buf_ptr =  buffer.as_ptr().offset(buflen as isize) as *mut libc::c_void;
         let mut n: size_t = fread(
             buf_ptr,
-
             1i32 as size_t,
             bufsize.wrapping_sub(buflen),
             in_0,
@@ -298,6 +297,8 @@ pub unsafe extern "C" fn dumpFile(
             break;
         }
     }
+    // TODO: read file into vector to avoid having to update length
+    buffer.set_len(buflen as usize);
     let (mut value, mut err) =
         cbor_parser_init(
             &mut buffer,

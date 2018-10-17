@@ -432,7 +432,7 @@ unsafe extern "C" fn cbor_value_at_end(mut it: *const CborValue) -> bool {
     return (*it).remaining == 0i32 as libc::c_uint;
 }
 unsafe extern "C" fn cbor_value_get_next_byte(mut it: *const CborValue) -> *const uint8_t {
-    return (*it).ptr;
+    return &(*it).vec[(*it).idx];
 }
 unsafe extern "C" fn _cbor_value_extract_int64_helper(mut value: *const CborValue) -> uint64_t {
     return if 0
@@ -643,6 +643,7 @@ unsafe extern "C" fn validate_value(
             }
             if 0 != err as u64 {
                 (*it).ptr = recursed.ptr;
+                (*it).idx = recursed.idx;
                 return err;
             } else {
                 err = cbor_value_leave_container(it, &mut recursed);

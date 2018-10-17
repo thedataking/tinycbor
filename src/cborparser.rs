@@ -241,10 +241,10 @@ unsafe extern "C" fn preparse_value(mut it: &mut CborValue) -> CborError {
     let mut parser: *const CborParser = (*it).parser;
     (*it).type_0 = CborInvalidType as libc::c_int as uint8_t;
     /* are we at the end? */
-    if (*it).ptr == (*parser).end {
+    if it.at_end() {
         return CborErrorUnexpectedEOF;
     } else {
-        let mut descriptor: uint8_t = *(*it).ptr;
+        let mut descriptor: uint8_t = it.vec[it.idx];
         let mut type_0: uint8_t =
             (descriptor as libc::c_int & MajorTypeMask as libc::c_int) as uint8_t;
         (*it).type_0 = type_0;
@@ -489,7 +489,7 @@ unsafe extern "C" fn preparse_value(mut it: &mut CborValue) -> CborError {
  * \endlist
  * \endif
  */
-unsafe extern "C" fn get16(mut ptr: *const uint8_t) -> uint16_t {
+unsafe extern "C" fn get16(ptr: *const uint8_t) -> uint16_t {
     let mut result: uint16_t = 0;
     memcpy(
         &mut result as *mut uint16_t as *mut libc::c_void,
@@ -498,7 +498,7 @@ unsafe extern "C" fn get16(mut ptr: *const uint8_t) -> uint16_t {
     );
     return result.swap_bytes();
 }
-unsafe extern "C" fn is_fixed_type(mut type_0: uint8_t) -> bool {
+unsafe extern "C" fn is_fixed_type(type_0: uint8_t) -> bool {
     return type_0 as libc::c_int != CborTextStringType as libc::c_int
         && type_0 as libc::c_int != CborByteStringType as libc::c_int
         && type_0 as libc::c_int != CborArrayType as libc::c_int
@@ -592,6 +592,7 @@ pub unsafe extern "C" fn cbor_value_leave_container(
     } else {
     };
     (*it).ptr = (*recursed).ptr;
+    (*it).idx = (*recursed).idx;
     return preparse_next_value(it);
 }
 unsafe extern "C" fn preparse_next_value(mut it: &mut CborValue) -> CborError {
@@ -614,6 +615,7 @@ unsafe extern "C" fn preparse_next_value_nodecrement(mut it: &mut CborValue) -> 
     {
         /* end of map or array */
         (*it).ptr = (*it).ptr.offset(1isize);
+        (*it).idx = (*it).idx + 1;
         (*it).type_0 = CborInvalidType as libc::c_int as uint8_t;
         (*it).remaining = 0i32 as uint32_t;
         return CborNoError;
@@ -647,11 +649,16 @@ pub unsafe extern "C" fn cbor_value_enter_container<'a>(
     *recursed = *it;
     if 0 != (*it).flags as libc::c_int & CborIteratorFlag_UnknownLength as libc::c_int {
         (*recursed).remaining = 4294967295u32;
-        (*recursed).ptr = (*recursed).ptr.offset(1isize)
+        (*recursed).ptr = (*recursed).ptr.offset(1isize);
+        (*recursed).idx = (*recursed).idx + 1;
     } else {
         let mut len: uint64_t = 0;
         let mut err: CborError =
-            _cbor_value_extract_number(&mut (*recursed).ptr, (*(*recursed).parser).end, &mut len);
+            _cbor_value_extract_number(
+                &mut (*recursed).ptr,
+                (*(*recursed).parser).end,
+                &mut len,
+                &mut (*recursed).idx);
         if 0 != !(err as libc::c_int == CborNoError as libc::c_int) as libc::c_int as libc::c_long {
             __assert_rtn(
                 (*::std::mem::transmute::<&[u8; 27], &[libc::c_char; 27]>(
@@ -669,6 +676,7 @@ pub unsafe extern "C" fn cbor_value_enter_container<'a>(
         {
             /* back track the pointer to indicate where the error occurred */
             (*recursed).ptr = (*it).ptr;
+            (*recursed).idx = (*it).idx;
             return CborErrorDataTooLarge;
         } else {
             if (*recursed).type_0 as libc::c_int == CborMapType as libc::c_int {
@@ -676,6 +684,7 @@ pub unsafe extern "C" fn cbor_value_enter_container<'a>(
                 if (*recursed).remaining > 4294967295u32.wrapping_div(2i32 as libc::c_uint) {
                     /* back track the pointer to indicate where the error occurred */
                     (*recursed).ptr = (*it).ptr;
+                    (*recursed).idx = (*it).idx;
                     return CborErrorDataTooLarge;
                 } else {
                     (*recursed).remaining = ((*recursed).remaining as libc::c_uint)
@@ -697,11 +706,13 @@ pub unsafe extern "C" fn _cbor_value_extract_number(
     mut ptr: *mut *const uint8_t,
     mut end: *const uint8_t,
     mut len: *mut uint64_t,
+    mut idx: *mut usize,
 ) -> CborError {
     let mut bytesNeeded: size_t = 0;
     let mut additional_information: uint8_t =
         (**ptr as libc::c_int & SmallValueMask as libc::c_int) as uint8_t;
     *ptr = (*ptr).offset(1isize);
+    *idx = *idx + 1;
     if (additional_information as libc::c_int) < Value8Bit as libc::c_int {
         *len = additional_information as uint64_t;
         return CborNoError;
@@ -727,6 +738,7 @@ pub unsafe extern "C" fn _cbor_value_extract_number(
                 *len = get64(*ptr)
             }
             *ptr = (*ptr).offset(bytesNeeded as isize);
+            *idx = *idx + bytesNeeded as usize;
             return CborNoError;
         }
     };
@@ -934,11 +946,16 @@ unsafe extern "C" fn get_string_chunk(
                 return CborErrorUnexpectedEOF;
             } else if *(*it).ptr as libc::c_int == BreakByte as libc::c_int {
                 /* last chunk */
-                (*it).ptr = (*it).ptr.offset(1isize)
+                (*it).ptr = (*it).ptr.offset(1isize);
+                (*it).idx = (*it).idx + 1;
             } else if (*(*it).ptr as libc::c_int & MajorTypeMask as libc::c_int) as uint8_t
                 as libc::c_int == (*it).type_0 as libc::c_int
             {
-                err = extract_length((*it).parser, &mut (*it).ptr, len);
+                err = extract_length(
+                    (*it).parser,
+                    &mut (*it).ptr,
+                    len,
+                    &mut (*it).idx);
                 if 0 != err as u64 {
                     return err;
                 } else if *len
@@ -948,6 +965,7 @@ unsafe extern "C" fn get_string_chunk(
                 } else {
                     *bufferptr = (*it).ptr as *const libc::c_void;
                     (*it).ptr = (*it).ptr.offset(*len as isize);
+                    (*it).idx= (*it).idx + *len as usize;
                     (*it).flags = ((*it).flags as libc::c_int
                         | CborIteratorFlag_IteratingStringChunks as libc::c_int)
                         as uint8_t;
@@ -967,9 +985,14 @@ unsafe extern "C" fn extract_length(
     mut parser: *const CborParser,
     mut ptr: *mut *const uint8_t,
     mut len: *mut size_t,
+    mut idx: &mut usize,
 ) -> CborError {
     let mut v: uint64_t = 0;
-    let mut err: CborError = _cbor_value_extract_number(ptr, (*parser).end, &mut v);
+    let mut err: CborError = _cbor_value_extract_number(
+        ptr,
+        (*parser).end,
+        &mut v,
+        idx);
     if 0 != err as u64 {
         *len = 0i32 as size_t;
         return err;
@@ -987,6 +1010,7 @@ unsafe extern "C" fn prepare_string_iteration(mut it: *mut CborValue) -> () {
         /* chunked string: we're before the first chunk;
          * advance to the first chunk */
         (*it).ptr = (*it).ptr.offset(1isize);
+        (*it).idx = (*it).idx + 1;
         (*it).flags = ((*it).flags as libc::c_int
             | CborIteratorFlag_IteratingStringChunks as libc::c_int)
             as uint8_t
@@ -1005,7 +1029,11 @@ unsafe extern "C" fn cbor_value_is_byte_string(mut value: *const CborValue) -> b
 unsafe extern "C" fn advance_internal(mut it: &mut CborValue) -> CborError {
     let mut length: uint64_t = 0;
     let mut err: CborError =
-        _cbor_value_extract_number(&mut (*it).ptr, (*(*it).parser).end, &mut length);
+        _cbor_value_extract_number(
+            &mut (*it).ptr,
+            (*(*it).parser).end,
+            &mut length,
+            &mut (*it).idx);
     if 0 != !(err as libc::c_int == CborNoError as libc::c_int) as libc::c_int as libc::c_long {
         __assert_rtn(
             (*::std::mem::transmute::<&[u8; 17], &[libc::c_char; 17]>(b"advance_internal\x00"))
@@ -1042,7 +1070,8 @@ unsafe extern "C" fn advance_internal(mut it: &mut CborValue) -> CborError {
             );
         } else {
         };
-        (*it).ptr = (*it).ptr.offset(length as isize)
+        (*it).ptr = (*it).ptr.offset(length as isize);
+        (*it).idx = (*it).idx + length as usize;
     }
     return preparse_next_value(it);
 }
