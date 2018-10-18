@@ -978,7 +978,7 @@ unsafe extern "C" fn resolve_indicator(
         } else if flags & CborPrettyIndicateOverlongNumbers as libc::c_int == 0i32 {
             return no_indicator;
         } else {
-            err = _cbor_value_extract_number(&mut ptr, end, &mut value, idx);
+            err = _cbor_value_extract_number(it, &mut value);
             if 0 != err as u64 {
                 /* CborErrorUnexpectedEOF */
                 return 0 as *const libc::c_char;

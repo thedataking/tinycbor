@@ -674,10 +674,8 @@ pub unsafe extern "C" fn cbor_value_enter_container<'a>(
         let mut len: uint64_t = 0;
         let mut err: CborError =
             _cbor_value_extract_number(
-                &mut (*recursed).ptr,
-                (*(*recursed).parser).end,
-                &mut len,
-                &mut (*recursed).idx);
+                recursed,
+                &mut len);
         if 0 != !(err as libc::c_int == CborNoError as libc::c_int) as libc::c_int as libc::c_long {
             __assert_rtn(
                 (*::std::mem::transmute::<&[u8; 27], &[libc::c_char; 27]>(
@@ -722,16 +720,16 @@ pub unsafe extern "C" fn cbor_value_enter_container<'a>(
 }
 #[no_mangle]
 pub unsafe extern "C" fn _cbor_value_extract_number(
-    mut ptr: *mut *const uint8_t,
-    mut end: *const uint8_t,
+    mut it: *mut CborValue,
     mut len: *mut uint64_t,
-    mut idx: *mut usize,
 ) -> CborError {
+    let mut ptr: *mut *const uint8_t = &mut (*it).ptr;
+    let mut end: *const uint8_t = (*(*it).parser).end;
+    let mut idx: *mut usize = &mut (*it).idx;
     let mut bytesNeeded: size_t = 0;
     let mut additional_information: uint8_t =
         (**ptr as libc::c_int & SmallValueMask as libc::c_int) as uint8_t;
-    *ptr = (*ptr).offset(1isize);
-    *idx = *idx + 1;
+    (*it).advance_by(1);
     if (additional_information as libc::c_int) < Value8Bit as libc::c_int {
         *len = additional_information as uint64_t;
         return CborNoError;
@@ -742,13 +740,13 @@ pub unsafe extern "C" fn _cbor_value_extract_number(
     } else {
         bytesNeeded =
             (1i32 << additional_information as libc::c_int - Value8Bit as libc::c_int) as size_t;
-        if 0 != (bytesNeeded > end.wrapping_offset_from(*ptr) as libc::c_long as size_t)
+        if 0 != (bytesNeeded > (*it).remaining() as libc::c_long as size_t)
             as libc::c_int as libc::c_long
         {
             return CborErrorUnexpectedEOF;
         } else {
             if bytesNeeded == 1i32 as libc::c_ulong {
-                *len = *(*ptr).offset(0isize) as uint64_t
+                *len = (*it).get_byte() as uint64_t
             } else if bytesNeeded == 2i32 as libc::c_ulong {
                 *len = get16(*ptr) as uint64_t
             } else if bytesNeeded == 4i32 as libc::c_ulong {
@@ -756,8 +754,7 @@ pub unsafe extern "C" fn _cbor_value_extract_number(
             } else {
                 *len = get64(*ptr)
             }
-            *ptr = (*ptr).offset(bytesNeeded as isize);
-            *idx = *idx + bytesNeeded as usize;
+            (*it).advance_by(bytesNeeded as usize);
             return CborNoError;
         }
     };
@@ -965,16 +962,13 @@ unsafe extern "C" fn get_string_chunk(
                 return CborErrorUnexpectedEOF;
             } else if *(*it).ptr as libc::c_int == BreakByte as libc::c_int {
                 /* last chunk */
-                (*it).ptr = (*it).ptr.offset(1isize);
-                (*it).idx = (*it).idx + 1;
+                (*it).advance_by(1);
             } else if (*(*it).ptr as libc::c_int & MajorTypeMask as libc::c_int) as uint8_t
                 as libc::c_int == (*it).type_0 as libc::c_int
             {
                 err = extract_length(
-                    (*it).parser,
-                    &mut (*it).ptr,
-                    len,
-                    &mut (*it).idx);
+                    it,
+                    len);
                 if 0 != err as u64 {
                     return err;
                 } else if *len > (*it).remaining() as size_t
@@ -999,17 +993,14 @@ unsafe extern "C" fn get_string_chunk(
     return preparse_next_value(it);
 }
 unsafe extern "C" fn extract_length(
-    mut parser: *const CborParser,
-    mut ptr: *mut *const uint8_t,
+    mut it: *mut CborValue,
     mut len: *mut size_t,
-    mut idx: &mut usize,
 ) -> CborError {
+    let mut parser: *const CborParser = (*it).parser;
     let mut v: uint64_t = 0;
     let mut err: CborError = _cbor_value_extract_number(
-        ptr,
-        (*parser).end,
-        &mut v,
-        idx);
+        it,
+        &mut v);
     if 0 != err as u64 {
         *len = 0i32 as size_t;
         return err;
@@ -1047,10 +1038,8 @@ unsafe extern "C" fn advance_internal(mut it: &mut CborValue) -> CborError {
     let mut length: uint64_t = 0;
     let mut err: CborError =
         _cbor_value_extract_number(
-            &mut (*it).ptr,
-            (*(*it).parser).end,
-            &mut length,
-            &mut (*it).idx);
+            it,
+            &mut length);
     if 0 != !(err as libc::c_int == CborNoError as libc::c_int) as libc::c_int as libc::c_long {
         __assert_rtn(
             (*::std::mem::transmute::<&[u8; 17], &[libc::c_char; 17]>(b"advance_internal\x00"))
