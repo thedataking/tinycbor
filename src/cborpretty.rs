@@ -1,5 +1,6 @@
 use libc;
 use cborparser::CborValue;
+use cborparser::_cbor_value_extract_number;
 extern "C" {
     #[no_mangle]
     fn __assert_rtn(
@@ -43,12 +44,6 @@ extern "C" {
     fn __fpclassifyf(_: libc::c_float) -> libc::c_int;
     #[no_mangle]
     fn ldexp(_: libc::c_double, _: libc::c_int) -> libc::c_double;
-    #[no_mangle]
-    fn _cbor_value_extract_number(
-        ptr: *mut *const uint8_t,
-        end: *const uint8_t,
-        len: *mut uint64_t,
-    ) -> CborError_0;
     #[no_mangle]
     fn _cbor_value_get_string_chunk(
         value: *const CborValue,
@@ -541,7 +536,7 @@ unsafe extern "C" fn value_to_pretty(
             while 0 == err as u64 {
                 if 0 != showingFragments as libc::c_int || indicator_0.is_null() {
                     /* any iteration, except the second for a non-chunked string */
-                    indicator_0 = resolve_indicator((*it).ptr, (*(*it).parser).end, flags)
+                    indicator_0 = resolve_indicator((*it).ptr, (*(*it).parser).end, flags, &mut (*it).idx)
                 }
                 err = _cbor_value_get_string_chunk(it, &mut ptr, &mut n, it);
                 if ptr.is_null() {
@@ -939,15 +934,16 @@ unsafe extern "C" fn printRecursionLimit(
     );
 }
 unsafe extern "C" fn get_indicator(
-    mut it: *const CborValue,
+    mut it: *mut CborValue,
     mut flags: libc::c_int,
 ) -> *const libc::c_char {
-    return resolve_indicator((*it).ptr, (*(*it).parser).end, flags);
+    return resolve_indicator((*it).ptr, (*(*it).parser).end, flags, &mut (*it).idx);
 }
 unsafe extern "C" fn resolve_indicator(
     mut ptr: *const uint8_t,
     mut end: *const uint8_t,
     mut flags: libc::c_int,
+    mut idx: *mut usize,
 ) -> *const libc::c_char {
     static mut indicators: [[libc::c_char; 3]; 8] = [
         [95, 48, 0],
@@ -981,7 +977,7 @@ unsafe extern "C" fn resolve_indicator(
         } else if flags & CborPrettyIndicateOverlongNumbers as libc::c_int == 0i32 {
             return no_indicator;
         } else {
-            err = _cbor_value_extract_number(&mut ptr, end, &mut value);
+            err = _cbor_value_extract_number(&mut ptr, end, &mut value, idx);
             if 0 != err as u64 {
                 /* CborErrorUnexpectedEOF */
                 return 0 as *const libc::c_char;

@@ -153,9 +153,24 @@ impl<'a> CborValue<'a> {
         }
     }
 
-    /// True iff `idx` is one element beyond end of `vec`
+    /// True iff `idx` is one element beyond end of `vec`.
     pub fn at_end(&self) -> bool {
         self.idx == self.vec.len()
+    }
+
+    /// Returns number of remaining bytes until value is exhausted.
+    pub fn remaining(&self) -> usize {
+        self.vec.len() - self.idx
+    }
+
+    /// Returns byte at current index
+    pub fn get_byte(&self) -> uint8_t {
+        self.vec[self.idx]
+    }
+
+    /// Returns byte at `offset` from current index
+    pub fn get_byte_at_offset(&self, offset: usize) -> uint8_t {
+        self.vec[self.idx + offset]
     }
 }
 pub const Value16Bit: unnamed = 25;
@@ -282,7 +297,7 @@ unsafe extern "C" fn preparse_value(mut it: &mut CborValue) -> CborError {
                 1i32 << descriptor as libc::c_int - Value8Bit as libc::c_int
             }) as size_t;
             if bytesNeeded.wrapping_add(1i32 as libc::c_ulong)
-                > (*parser).end.wrapping_offset_from((*it).ptr) as libc::c_long as size_t
+                > (*it).remaining() as size_t
             {
                 return CborErrorUnexpectedEOF;
             } else {
@@ -311,7 +326,7 @@ unsafe extern "C" fn preparse_value(mut it: &mut CborValue) -> CborError {
                             current_block = 4301060678865021963;
                         }
                         24 => {
-                            (*it).extra = *(*it).ptr.offset(1isize) as uint16_t;
+                            (*it).extra = (*it).get_byte_at_offset(1) as uint16_t;
                             if 0 != (((*it).extra as libc::c_int) < 32i32) as libc::c_int
                                 as libc::c_long
                             {
@@ -341,7 +356,7 @@ unsafe extern "C" fn preparse_value(mut it: &mut CborValue) -> CborError {
                         }
                     }
                     match current_block {
-                        4301060678865021963 => (*it).type_0 = *(*it).ptr,
+                        4301060678865021963 => (*it).type_0 = (*it).get_byte(),
                         _ => {}
                     }
                     return CborNoError;
@@ -351,9 +366,9 @@ unsafe extern "C" fn preparse_value(mut it: &mut CborValue) -> CborError {
                     return CborNoError;
                 } else {
                     if descriptor as libc::c_int == Value8Bit as libc::c_int {
-                        (*it).extra = *(*it).ptr.offset(1isize) as uint16_t
+                        (*it).extra = (*it).get_byte_at_offset(1) as uint16_t
                     } else if descriptor as libc::c_int == Value16Bit as libc::c_int {
-                        (*it).extra = get16((*it).ptr.offset(1isize))
+                        (*it).extra = get16(&(*it).vec[(*it).idx + 1]);
                     } else {
                         (*it).flags = ((*it).flags as libc::c_int
                             | CborIteratorFlag_IntegerValueTooLarge as libc::c_int)
@@ -632,7 +647,7 @@ unsafe extern "C" fn cbor_value_at_end(mut it: *const CborValue) -> bool {
 }
 #[no_mangle]
 pub unsafe extern "C" fn cbor_value_enter_container<'a>(
-    mut it: & CborValue<'a>,
+    mut it: &mut CborValue<'a>,
     mut recursed: & mut CborValue<'a>,
 ) -> CborError {
     if 0 != !cbor_value_is_container(it) as libc::c_int as libc::c_long {
@@ -942,7 +957,7 @@ unsafe extern "C" fn get_string_chunk(
     match current_block {
         792017965103506125 => {
             /* are we at the end? */
-            if (*it).ptr == (*(*it).parser).end {
+            if (*it).at_end() {
                 return CborErrorUnexpectedEOF;
             } else if *(*it).ptr as libc::c_int == BreakByte as libc::c_int {
                 /* last chunk */
@@ -958,8 +973,7 @@ unsafe extern "C" fn get_string_chunk(
                     &mut (*it).idx);
                 if 0 != err as u64 {
                     return err;
-                } else if *len
-                    > (*(*it).parser).end.wrapping_offset_from((*it).ptr) as libc::c_long as size_t
+                } else if *len > (*it).remaining() as size_t
                 {
                     return CborErrorUnexpectedEOF;
                 } else {
@@ -1129,7 +1143,7 @@ pub unsafe extern "C" fn _cbor_value_decode_int64_internal(
      * we just need to test for the one bit those two options differ */
     if 0 != !(*(*value).ptr as libc::c_int & SmallValueMask as libc::c_int
         == Value32Bit as libc::c_int
-        || *(*value).ptr as libc::c_int & SmallValueMask as libc::c_int
+        || (*value).get_byte() as libc::c_int & SmallValueMask as libc::c_int
             == Value64Bit as libc::c_int) as libc::c_int as libc::c_long
     {
         __assert_rtn((*::std::mem::transmute::<&[u8; 34],
@@ -1318,7 +1332,7 @@ unsafe extern "C" fn cbor_value_is_map(mut value: *const CborValue) -> bool {
 }
 #[no_mangle]
 pub unsafe extern "C" fn cbor_value_map_find_value<'a>(
-    mut map: &CborValue<'a>,
+    mut map: &mut CborValue<'a>,
     mut string: *const libc::c_char,
     mut element: &mut CborValue<'a>,
 ) -> CborError {

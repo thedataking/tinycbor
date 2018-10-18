@@ -606,7 +606,7 @@ pub unsafe extern "C" fn cbor_value_validate(
     if 0 != err as u64 {
         return err;
     } else if 0 != flags & CborValidateCompleteData as libc::c_int as libc::c_uint
-        && (*it).ptr != (*(*it).parser).end
+        && !(*it).at_end()
     {
         return CborErrorGarbageAtEnd;
     } else {
