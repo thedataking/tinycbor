@@ -18,6 +18,8 @@ if [ ! -f ${CBORFILE} ]; then
     echo >&2 "$CBORFILE not found. Run transpiler and retry."; exit 1;
 fi
 
+cargo build 2>/dev/null || { echo "cargo build failed."; exit 1; }
+
 # generate ref output
 ${CBORDUMP} -c ${CBORFILE} > ${REFERENCE_OUTPUT}
 # generate test output; pipe rustc warnings to /dev/null

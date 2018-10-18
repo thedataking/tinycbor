@@ -536,7 +536,7 @@ unsafe extern "C" fn value_to_pretty(
             while 0 == err as u64 {
                 if 0 != showingFragments as libc::c_int || indicator_0.is_null() {
                     /* any iteration, except the second for a non-chunked string */
-                    indicator_0 = resolve_indicator((*it).ptr, (*(*it).parser).end, flags, &mut (*it).idx)
+                    indicator_0 = resolve_indicator(it, flags)
                 }
                 err = _cbor_value_get_string_chunk(it, &mut ptr, &mut n, it);
                 if ptr.is_null() {
@@ -937,14 +937,15 @@ unsafe extern "C" fn get_indicator(
     mut it: *mut CborValue,
     mut flags: libc::c_int,
 ) -> *const libc::c_char {
-    return resolve_indicator((*it).ptr, (*(*it).parser).end, flags, &mut (*it).idx);
+    return resolve_indicator(it, flags);
 }
 unsafe extern "C" fn resolve_indicator(
-    mut ptr: *const uint8_t,
-    mut end: *const uint8_t,
+    mut it: *mut CborValue,
     mut flags: libc::c_int,
-    mut idx: *mut usize,
 ) -> *const libc::c_char {
+    let mut ptr: *const uint8_t = (*it).ptr;
+    let mut end: *const uint8_t = (*(*it).parser).end;
+    let mut idx: *mut usize = &mut (*it).idx;
     static mut indicators: [[libc::c_char; 3]; 8] = [
         [95, 48, 0],
         [95, 49, 0],

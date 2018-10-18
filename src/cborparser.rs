@@ -172,6 +172,11 @@ impl<'a> CborValue<'a> {
     pub fn get_byte_at_offset(&self, offset: usize) -> uint8_t {
         self.vec[self.idx + offset]
     }
+
+    pub fn advance_by(&mut self, offset: usize) {
+        self.ptr = unsafe { self.ptr.offset(offset as isize) };
+        self.idx = self.idx + offset;
+    }
 }
 pub const Value16Bit: unnamed = 25;
 pub const Value8Bit: unnamed = 24;
@@ -625,12 +630,11 @@ unsafe extern "C" fn preparse_next_value(mut it: &mut CborValue) -> CborError {
 }
 unsafe extern "C" fn preparse_next_value_nodecrement(mut it: &mut CborValue) -> CborError {
     if (*it).remaining == 4294967295u32
-        && (*it).ptr != (*(*it).parser).end
+        && !(*it).at_end()
         && *(*it).ptr as libc::c_int == BreakByte as libc::c_int as uint8_t as libc::c_int
     {
         /* end of map or array */
-        (*it).ptr = (*it).ptr.offset(1isize);
-        (*it).idx = (*it).idx + 1;
+        (*it).advance_by(1);
         (*it).type_0 = CborInvalidType as libc::c_int as uint8_t;
         (*it).remaining = 0i32 as uint32_t;
         return CborNoError;
@@ -978,8 +982,7 @@ unsafe extern "C" fn get_string_chunk(
                     return CborErrorUnexpectedEOF;
                 } else {
                     *bufferptr = (*it).ptr as *const libc::c_void;
-                    (*it).ptr = (*it).ptr.offset(*len as isize);
-                    (*it).idx= (*it).idx + *len as usize;
+                    (*it).advance_by(*len as usize);
                     (*it).flags = ((*it).flags as libc::c_int
                         | CborIteratorFlag_IteratingStringChunks as libc::c_int)
                         as uint8_t;
@@ -1084,8 +1087,7 @@ unsafe extern "C" fn advance_internal(mut it: &mut CborValue) -> CborError {
             );
         } else {
         };
-        (*it).ptr = (*it).ptr.offset(length as isize);
-        (*it).idx = (*it).idx + length as usize;
+        (*it).advance_by(length as usize);
     }
     return preparse_next_value(it);
 }
