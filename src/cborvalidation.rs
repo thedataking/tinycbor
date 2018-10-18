@@ -1,5 +1,6 @@
 use libc;
 use cborparser::CborValue;
+use cborparser::_cbor_value_extract_number;
 extern "C" {
     #[no_mangle]
     fn __assert_rtn(
@@ -51,12 +52,6 @@ extern "C" {
         bufferptr: *mut *const libc::c_void,
         len: *mut size_t,
         next: *mut CborValue,
-    ) -> CborError;
-    #[no_mangle]
-    fn _cbor_value_extract_number(
-        ptr: *mut *const uint8_t,
-        end: *const uint8_t,
-        len: *mut uint64_t,
     ) -> CborError;
     #[no_mangle]
     fn _cbor_value_prepare_string_iteration(it: *mut CborValue) -> CborError;
@@ -1260,7 +1255,7 @@ unsafe extern "C" fn get_utf8(
     };
 }
 unsafe extern "C" fn validate_number(
-    mut it: *const CborValue,
+    mut it: *mut CborValue,
     mut type_0: CborType_0,
     mut flags: uint32_t,
 ) -> CborError {
@@ -1278,7 +1273,7 @@ unsafe extern "C" fn validate_number(
         /* checked elsewhere */
         return err;
     } else {
-        err = _cbor_value_extract_number(&mut ptr, (*(*it).parser).end, &mut value);
+        err = _cbor_value_extract_number(it, &mut value);
         if 0 != err as u64 {
             return err;
         } else {
@@ -1353,9 +1348,9 @@ unsafe extern "C" fn validate_container(
                         let mut ptr: *const uint8_t = 0 as *const uint8_t;
                         /* extract the two lengths */
                         ptr = previous;
-                        _cbor_value_extract_number(&mut ptr, (*(*it).parser).end, &mut len1);
+                        _cbor_value_extract_number(it, &mut len1);
                         ptr = current;
-                        _cbor_value_extract_number(&mut ptr, (*(*it).parser).end, &mut len2);
+                        _cbor_value_extract_number(it, &mut len2);
                         if len1 > len2 {
                             return CborErrorMapNotSorted;
                         } else if len1 == len2 {
