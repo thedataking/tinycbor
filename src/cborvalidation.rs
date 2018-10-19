@@ -1357,7 +1357,7 @@ unsafe extern "C" fn validate_container(
                                 as libc::c_long
                                 as size_t;
                             let mut bytelen2: size_t =
-                                (*it).ptr.wrapping_offset_from(current) as libc::c_long as size_t;
+                                (*it).offset_from(current) as libc::c_long as size_t;
                             let mut r: libc::c_int = memcmp(
                                 previous as *const libc::c_void,
                                 current as *const libc::c_void,
@@ -1382,7 +1382,7 @@ unsafe extern "C" fn validate_container(
                         }
                     }
                     previous = current;
-                    previous_end = (*it).ptr
+                    previous_end = (*it).get_ptr()
                 }
                 /* map: that was the key, so get the value */
                 err = validate_value(it, flags, recursionLeft);

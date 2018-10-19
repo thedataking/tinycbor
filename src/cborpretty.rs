@@ -437,8 +437,7 @@ unsafe extern "C" fn value_to_pretty(
                         recursionsLeft - 1i32,
                     );
                     if 0 != err as u64 {
-                        (*it).ptr = recursed.ptr;
-                        (*it).idx= recursed.idx;
+                        (*it).set_pos(&recursed);
                         /* parse error */
                         return err;
                     } else {
@@ -942,9 +941,6 @@ unsafe extern "C" fn resolve_indicator(
     mut it: *mut CborValue,
     mut flags: libc::c_int,
 ) -> *const libc::c_char {
-    let mut ptr: *const uint8_t = (*it).ptr;
-    let mut end: *const uint8_t = (*(*it).parser).end;
-    let mut idx: *mut usize = &mut (*it).idx;
     static mut indicators: [[libc::c_char; 3]; 8] = [
         [95, 48, 0],
         [95, 49, 0],

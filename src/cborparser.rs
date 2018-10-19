@@ -131,7 +131,6 @@ pub struct CborParser {
 #[repr(C)]
 pub struct CborValue<'a> {
     pub parser: *const CborParser,
-    pub ptr: *const uint8_t,
     pub idx: usize,
     pub vec: &'a[uint8_t],
     pub remaining: uint32_t,
@@ -143,7 +142,6 @@ impl<'a> CborValue<'a> {
     pub fn new() -> CborValue<'a> {
         CborValue {
             parser: 0 as *const CborParser,
-            ptr: 0 as *const uint8_t,
             idx: 0 as usize,
             vec: &[],
             remaining: 0,
@@ -183,13 +181,17 @@ impl<'a> CborValue<'a> {
     }
 
     pub fn advance_pos(&mut self, offset: usize) {
-        self.ptr = unsafe { self.ptr.offset(offset as isize) };
         self.idx = self.idx + offset;
     }
 
     pub fn set_pos(&mut self, other: &CborValue) {
-        self.ptr = other.ptr;
         self.idx = other.idx;
+    }
+
+    pub fn offset_from(&self, other: *const uint8_t) -> isize {
+        panic!("untested");
+        let ptr: *const uint8_t = &self.vec[self.idx];
+        ptr.wrapping_offset_from(other)
     }
 
 }
@@ -258,7 +260,6 @@ pub unsafe extern "C" fn cbor_parser_init(
     };
     let mut it: CborValue = CborValue {
         parser: &parser,
-        ptr: buffer.as_ptr(),
         idx: 0,
         vec: buffer.as_slice(),
         /* there's one type altogether, usually an array or map */
@@ -645,7 +646,7 @@ unsafe extern "C" fn preparse_next_value(mut it: &mut CborValue) -> CborError {
 unsafe extern "C" fn preparse_next_value_nodecrement(mut it: &mut CborValue) -> CborError {
     if (*it).remaining == 4294967295u32
         && !(*it).at_end()
-        && *(*it).ptr as libc::c_int == BreakByte as libc::c_int as uint8_t as libc::c_int
+        && (*it).get8() as libc::c_int == BreakByte as libc::c_int as uint8_t as libc::c_int
     {
         /* end of map or array */
         (*it).advance_pos(1);
@@ -735,12 +736,11 @@ pub unsafe extern "C" fn _cbor_value_extract_number(
     mut it: *mut CborValue,
     mut len: *mut uint64_t,
 ) -> CborError {
-    let mut ptr: *mut *const uint8_t = &mut (*it).ptr;
     let mut end: *const uint8_t = (*(*it).parser).end;
     let mut idx: *mut usize = &mut (*it).idx;
     let mut bytesNeeded: size_t = 0;
     let mut additional_information: uint8_t =
-        (**ptr as libc::c_int & SmallValueMask as libc::c_int) as uint8_t;
+        ((*it).get8() as libc::c_int & SmallValueMask as libc::c_int) as uint8_t;
     (*it).advance_pos(1);
     if (additional_information as libc::c_int) < Value8Bit as libc::c_int {
         *len = additional_information as uint64_t;
@@ -760,11 +760,11 @@ pub unsafe extern "C" fn _cbor_value_extract_number(
             if bytesNeeded == 1i32 as libc::c_ulong {
                 *len = (*it).get8() as uint64_t
             } else if bytesNeeded == 2i32 as libc::c_ulong {
-                *len = get16(*ptr) as uint64_t
+                *len = get16((*it).get_ptr()) as uint64_t
             } else if bytesNeeded == 4i32 as libc::c_ulong {
-                *len = get32(*ptr) as uint64_t
+                *len = get32((*it).get_ptr()) as uint64_t
             } else {
-                *len = get64(*ptr)
+                *len = get64((*it).get_ptr())
             }
             (*it).advance_pos(bytesNeeded as usize);
             return CborNoError;
@@ -1143,7 +1143,7 @@ pub unsafe extern "C" fn _cbor_value_decode_int64_internal(
     };
     /* since the additional information can only be Value32Bit or Value64Bit,
      * we just need to test for the one bit those two options differ */
-    if 0 != !(*(*value).ptr as libc::c_int & SmallValueMask as libc::c_int
+    if 0 != !((*value).get8() as libc::c_int & SmallValueMask as libc::c_int
         == Value32Bit as libc::c_int
         || (*value).get8() as libc::c_int & SmallValueMask as libc::c_int
             == Value64Bit as libc::c_int) as libc::c_int as libc::c_long
@@ -1437,7 +1437,7 @@ pub unsafe extern "C" fn cbor_value_get_half_float(
     } else {
     };
     /* size has been computed already */
-    v = get16((*value).ptr.offset(1isize));
+    v = get16((*value).get_ptr_at_offset(1));
     memcpy(
         result,
         &mut v as *mut uint16_t as *const libc::c_void,
@@ -1465,7 +1465,7 @@ pub unsafe extern "C" fn _cbor_value_prepare_string_iteration(
     };
     prepare_string_iteration(it);
     /* are we at the end? */
-    if (*it).ptr == (*(*it).parser).end {
+    if (*it).at_end() {
         return CborErrorUnexpectedEOF;
     } else {
         return CborNoError;
