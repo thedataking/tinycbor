@@ -123,14 +123,7 @@ pub const CborIteratorFlag_NegativeInteger: CborParserIteratorFlags = 2;
 pub const CborIteratorFlag_IntegerValueTooLarge: CborParserIteratorFlags = 1;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct CborParser {
-    pub end: *const uint8_t,
-    pub flags: uint32_t,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
 pub struct CborValue<'a> {
-    pub parser: *const CborParser,
     pub idx: usize,
     pub vec: &'a[uint8_t],
     pub remaining: uint32_t,
@@ -141,7 +134,6 @@ pub struct CborValue<'a> {
 impl<'a> CborValue<'a> {
     pub fn new() -> CborValue<'a> {
         CborValue {
-            parser: 0 as *const CborParser,
             idx: 0 as usize,
             vec: &[],
             remaining: 0,
@@ -174,6 +166,12 @@ impl<'a> CborValue<'a> {
     /// Returns pointer to byte at `offset` from current index
     pub fn get_ptr(&self) -> *const uint8_t {
         self.get_ptr_at_offset(0)
+    }
+
+    /// Returns pointer one past last element
+    pub unsafe fn get_end_ptr(&self) -> *const uint8_t {
+        // NOTE: we're computing pointer one past end of allocation
+        self.vec.as_ptr().offset(self.vec.len() as isize)
     }
 
     pub fn get_ptr_at_offset(&self, offset: usize) -> *const uint8_t {
@@ -254,12 +252,7 @@ pub unsafe extern "C" fn cbor_parser_init(
     mut size: size_t,
     mut flags: uint32_t,
 ) -> (CborValue, CborError) {
-    let mut parser: CborParser = CborParser {
-        end: buffer.as_ptr().offset(size as isize),
-        flags,
-    };
     let mut it: CborValue = CborValue {
-        parser: &parser,
         idx: 0,
         vec: buffer.as_slice(),
         /* there's one type altogether, usually an array or map */
@@ -274,7 +267,6 @@ pub unsafe extern "C" fn cbor_parser_init(
 }
 unsafe extern "C" fn preparse_value(mut it: &mut CborValue) -> CborError {
     let mut current_block: u64;
-    let mut parser: *const CborParser = (*it).parser;
     (*it).type_0 = CborInvalidType as libc::c_int as uint8_t;
     /* are we at the end? */
     if it.at_end() {
@@ -736,7 +728,7 @@ pub unsafe extern "C" fn _cbor_value_extract_number(
     mut it: *mut CborValue,
     mut len: *mut uint64_t,
 ) -> CborError {
-    let mut end: *const uint8_t = (*(*it).parser).end;
+    let mut end: *const uint8_t = (*it).get_end_ptr();
     let mut idx: *mut usize = &mut (*it).idx;
     let mut bytesNeeded: size_t = 0;
     let mut additional_information: uint8_t =
@@ -1008,7 +1000,6 @@ unsafe extern "C" fn extract_length(
     mut it: *mut CborValue,
     mut len: *mut size_t,
 ) -> CborError {
-    let mut parser: *const CborParser = (*it).parser;
     let mut v: uint64_t = 0;
     let mut err: CborError = _cbor_value_extract_number(
         it,
