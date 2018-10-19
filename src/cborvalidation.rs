@@ -637,8 +637,7 @@ unsafe extern "C" fn validate_value(
                 )
             }
             if 0 != err as u64 {
-                (*it).ptr = recursed.ptr;
-                (*it).idx = recursed.idx;
+                (*it).set_pos(&recursed);
                 return err;
             } else {
                 err = cbor_value_leave_container(it, &mut recursed);
@@ -1260,7 +1259,7 @@ unsafe extern "C" fn validate_number(
     mut flags: uint32_t,
 ) -> CborError {
     let mut err: CborError = CborNoError;
-    let mut ptr: *const uint8_t = (*it).ptr;
+    let mut ptr: *const uint8_t = (*it).get_ptr();
     let mut bytesUsed: size_t = 0;
     let mut bytesNeeded: size_t = 0;
     let mut value: uint64_t = 0;
@@ -1277,7 +1276,7 @@ unsafe extern "C" fn validate_number(
         if 0 != err as u64 {
             return err;
         } else {
-            bytesUsed = (ptr.wrapping_offset_from((*it).ptr) as libc::c_long - 1i32 as libc::c_long)
+            bytesUsed = (ptr.wrapping_offset_from((*it).get_ptr()) as libc::c_long - 1i32 as libc::c_long)
                 as size_t;
             bytesNeeded = 0i32 as size_t;
             if value >= Value8Bit as libc::c_int as libc::c_ulonglong {

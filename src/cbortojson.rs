@@ -689,8 +689,7 @@ unsafe extern "C" fn value_to_json(
             let mut recursed: CborValue = CborValue::new();
             err = cbor_value_enter_container(it, &mut recursed);
             if 0 != err as u64 {
-                (*it).ptr = recursed.ptr;
-                (*it).idx = recursed.idx;
+                (*it).set_pos(&recursed);
                 /* parse error */
                 return err;
             } else if fputc(
@@ -710,8 +709,7 @@ unsafe extern "C" fn value_to_json(
                     map_to_json(out, &mut recursed, flags, status) as libc::c_int
                 }) as CborError_0;
                 if 0 != err as u64 {
-                    (*it).ptr = recursed.ptr;
-                    (*it).idx = recursed.idx;
+                    (*it).set_pos(&recursed);
                     /* parse error */
                     return err;
                 } else if fputc(

@@ -13,12 +13,11 @@ type -P ${CBORDUMP} >/dev/null || {
     echo >&2 "$CBORDUMP not found. Build tinycbor and retry."; exit 1;
 }
 
-
 if [ ! -f ${CBORFILE} ]; then
     echo >&2 "$CBORFILE not found. Run transpiler and retry."; exit 1;
 fi
 
-cargo build 2>/dev/null || { echo "cargo build failed."; exit 1; }
+cd ${SCRIPT_DIR} && cargo build 2>/dev/null || { echo "cargo build failed."; exit 1; }
 
 # generate ref output
 ${CBORDUMP} -c ${CBORFILE} > ${REFERENCE_OUTPUT}

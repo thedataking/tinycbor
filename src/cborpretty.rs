@@ -424,8 +424,7 @@ unsafe extern "C" fn value_to_pretty(
             } else {
                 err = cbor_value_enter_container(it, &mut recursed);
                 if 0 != err as u64 {
-                    (*it).ptr = recursed.ptr;
-                    (*it).idx = recursed.idx;
+                    (*it).set_pos(&recursed);
                     /* parse error */
                     return err;
                 } else {
@@ -963,11 +962,11 @@ unsafe extern "C" fn resolve_indicator(
     let mut expected_information: uint8_t = 0;
     let mut value: uint64_t = 0;
     let mut err: CborError_0 = CborNoError;
-    if ptr == end {
+    if (*it).at_end() {
         /* CborErrorUnexpectedEOF */
         return 0 as *const libc::c_char;
     } else {
-        additional_information = (*ptr as libc::c_int & SmallValueMask as libc::c_int) as uint8_t;
+        additional_information = ((*it).get8() as libc::c_int & SmallValueMask as libc::c_int) as uint8_t;
         if (additional_information as libc::c_int) < Value8Bit as libc::c_int {
             return no_indicator;
         } else if 0 != flags & CborPrettyIndicateIndeterminateLength as libc::c_int
