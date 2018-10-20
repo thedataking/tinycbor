@@ -291,11 +291,11 @@ unsafe extern "C" fn cbor_value_get_tag(
     *result = _cbor_value_extract_int64_helper(value);
     return CborNoError;
 }
-unsafe extern "C" fn cbor_value_is_float(mut value: *const CborValue) -> bool {
-    return (*value).type_0 as libc::c_int == CborFloatType as libc::c_int;
+fn cbor_value_is_float(mut value: &CborValue) -> bool {
+    return value.type_0 as libc::c_int == CborFloatType as libc::c_int;
 }
 unsafe extern "C" fn cbor_value_get_float(
-    mut value: *const CborValue,
+    mut value: &CborValue,
     mut result: *mut libc::c_float,
 ) -> CborError_0 {
     let mut data: uint32_t = 0;

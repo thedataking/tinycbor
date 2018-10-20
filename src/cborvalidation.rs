@@ -1,7 +1,13 @@
 use libc;
 use cborparser::CborValue;
+use cborparser::cbor_value_advance_fixed;
 use cborparser::_cbor_value_extract_number;
 use cborparser::cbor_value_enter_container;
+use cborparser::cbor_value_leave_container;
+use cborparser::_cbor_value_decode_int64_internal;
+use cborparser::cbor_value_get_half_float;
+use cborparser::cbor_value_skip_tag;
+use cborparser::_cbor_value_get_string_chunk;
 extern "C" {
     #[no_mangle]
     fn __assert_rtn(
@@ -19,22 +25,6 @@ extern "C" {
         __n: size_t,
     ) -> *mut libc::c_void;
     #[no_mangle]
-    fn cbor_value_advance_fixed(it: *mut CborValue) -> CborError;
-    #[no_mangle]
-    fn cbor_value_leave_container(
-        it: *mut CborValue,
-        recursed: *const CborValue,
-    ) -> CborError;
-    #[no_mangle]
-    fn _cbor_value_decode_int64_internal(value: *const CborValue) -> uint64_t;
-    #[no_mangle]
-    fn cbor_value_skip_tag(it: *mut CborValue) -> CborError;
-    #[no_mangle]
-    fn cbor_value_get_half_float(
-        value: *const CborValue,
-        result: *mut libc::c_void,
-    ) -> CborError;
-    #[no_mangle]
     fn ldexp(_: libc::c_double, _: libc::c_int) -> libc::c_double;
     #[no_mangle]
     fn __fpclassifyl(_: libc::c_double) -> libc::c_int;
@@ -42,13 +32,6 @@ extern "C" {
     fn __fpclassifyd(_: libc::c_double) -> libc::c_int;
     #[no_mangle]
     fn __fpclassifyf(_: libc::c_float) -> libc::c_int;
-    #[no_mangle]
-    fn _cbor_value_get_string_chunk(
-        value: *const CborValue,
-        bufferptr: *mut *const libc::c_void,
-        len: *mut size_t,
-        next: *mut CborValue,
-    ) -> CborError;
     #[no_mangle]
     fn _cbor_value_prepare_string_iteration(it: *mut CborValue) -> CborError;
 }
@@ -549,7 +532,7 @@ unsafe extern "C" fn cbor_value_is_double(mut value: *const CborValue) -> bool {
     return (*value).type_0 as libc::c_int == CborDoubleType as libc::c_int;
 }
 unsafe extern "C" fn cbor_value_get_double(
-    mut value: *const CborValue,
+    mut value: &CborValue,
     mut result: *mut libc::c_double,
 ) -> CborError {
     let mut data: uint64_t = 0;
@@ -565,7 +548,7 @@ unsafe extern "C" fn cbor_value_get_double(
     } else {
     };
     if 0 != (0
-        == (*value).flags as libc::c_int & CborIteratorFlag_IntegerValueTooLarge as libc::c_int)
+        == value.flags as libc::c_int & CborIteratorFlag_IntegerValueTooLarge as libc::c_int)
         as libc::c_int as libc::c_long
     {
         __assert_rtn(
@@ -674,7 +657,12 @@ unsafe extern "C" fn validate_value(
                     if 0 != err as u64 {
                         return err;
                     } else {
-                        err = _cbor_value_get_string_chunk(it, &mut ptr, &mut n, it);
+                        panic!("not migrated"); // code below won't pass borrow check
+//                        err = _cbor_value_get_string_chunk(
+//                            it,
+//                            &mut ptr,
+//                            &mut n,
+//                            Some(it));
                         if 0 != err as u64 {
                             return err;
                         } else {
@@ -767,7 +755,7 @@ unsafe extern "C" fn validate_value(
     return err;
 }
 unsafe extern "C" fn validate_floating_point(
-    mut it: *mut CborValue,
+    mut it: &mut CborValue,
     mut type_0: CborType_0,
     mut flags: uint32_t,
 ) -> CborError {

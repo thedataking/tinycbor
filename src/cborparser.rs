@@ -652,8 +652,8 @@ fn cbor_value_is_container(mut it: &CborValue) -> bool {
     return it.type_0 as libc::c_int == CborArrayType as libc::c_int
         || it.type_0 as libc::c_int == CborMapType as libc::c_int;
 }
-unsafe extern "C" fn cbor_value_at_end(mut it: *const CborValue) -> bool {
-    return (*it).remaining == 0i32 as libc::c_uint;
+fn cbor_value_at_end(mut it: &CborValue) -> bool {
+    return it.remaining == 0i32 as libc::c_uint;
 }
 #[no_mangle]
 pub unsafe extern "C" fn cbor_value_enter_container<'a>(

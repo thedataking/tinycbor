@@ -13,7 +13,6 @@
 #![allow(mutable_transmutes)]
 #![allow(unused_mut)]
 
-#![feature(extern_prelude)] // TODO: not sure this is necessary in newer nightlies
 #![feature(const_vec_new)]  // for `<std::vec::Vec<T>>::new` in statics
 
 extern crate libc;
