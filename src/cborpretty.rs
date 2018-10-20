@@ -515,7 +515,9 @@ unsafe extern "C" fn value_to_pretty(
                     /* any iteration, except the second for a non-chunked string */
                     indicator_0 = resolve_indicator(it, flags)
                 }
-                // introduce temporary to avoid having two mutable refs to it.
+                // introduce temporary to avoid having two mutable refs to `it`.
+                // TODO: find solution that avoids code duplication for all calls
+                // to `_cbor_value_get_string_chunk`.
                 let mut tmp = *it;
                 err = _cbor_value_get_string_chunk(
                     it,
