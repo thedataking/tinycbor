@@ -25,6 +25,7 @@
 #ifndef CBOR_H
 #define CBOR_H
 
+#define assert(ignore)((void) 0)
 #ifndef assert
 #include <assert.h>
 #endif
