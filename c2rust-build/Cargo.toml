@@ -6,7 +6,7 @@ publish = false
 build = "build.rs"
 
 [[bin]]
-path = "main.rs"
+path = "src/main.rs"
 name = "cbordump-rs"
 
 #[lib]
