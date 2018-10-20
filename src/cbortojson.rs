@@ -365,7 +365,7 @@ pub type ConversionStatusFlags = libc::c_uint;
 unsafe extern "C" fn cbor_value_at_end(mut it: *const CborValue) -> bool {
     return (*it).remaining == 0i32 as libc::c_uint;
 }
-unsafe extern "C" fn _cbor_value_extract_int64_helper(mut value: *const CborValue) -> uint64_t {
+unsafe extern "C" fn _cbor_value_extract_int64_helper(mut value: &CborValue) -> uint64_t {
     return if 0
         != (*value).flags as libc::c_int & CborIteratorFlag_IntegerValueTooLarge as libc::c_int
     {
@@ -430,7 +430,7 @@ unsafe extern "C" fn cbor_value_is_negative_integer(mut value: *const CborValue)
         && 0 != (*value).flags as libc::c_int & CborIteratorFlag_NegativeInteger as libc::c_int;
 }
 unsafe extern "C" fn cbor_value_get_raw_integer(
-    mut value: *const CborValue,
+    mut value: &CborValue,
     mut result: *mut uint64_t,
 ) -> CborError_0 {
     if 0 != !cbor_value_is_integer(value) as libc::c_int as libc::c_long {
@@ -452,7 +452,7 @@ unsafe extern "C" fn cbor_value_is_tag(mut value: *const CborValue) -> bool {
     return (*value).type_0 as libc::c_int == CborTagType as libc::c_int;
 }
 unsafe extern "C" fn cbor_value_get_tag(
-    mut value: *const CborValue,
+    mut value: &CborValue,
     mut result: *mut CborTag,
 ) -> CborError_0 {
     if 0 != !cbor_value_is_tag(value) as libc::c_int as libc::c_long {
@@ -517,7 +517,7 @@ unsafe extern "C" fn cbor_value_is_float(mut value: *const CborValue) -> bool {
     return (*value).type_0 as libc::c_int == CborFloatType as libc::c_int;
 }
 unsafe extern "C" fn cbor_value_get_float(
-    mut value: *const CborValue,
+    mut value: &CborValue,
     mut result: *mut libc::c_float,
 ) -> CborError_0 {
     let mut data: uint32_t = 0;
@@ -557,7 +557,7 @@ unsafe extern "C" fn cbor_value_is_double(mut value: *const CborValue) -> bool {
     return (*value).type_0 as libc::c_int == CborDoubleType as libc::c_int;
 }
 unsafe extern "C" fn cbor_value_get_double(
-    mut value: *const CborValue,
+    mut value: &CborValue,
     mut result: *mut libc::c_double,
 ) -> CborError_0 {
     let mut data: uint64_t = 0;

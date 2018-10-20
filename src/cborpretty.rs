@@ -938,7 +938,7 @@ unsafe extern "C" fn get_indicator(
     return resolve_indicator(it, flags);
 }
 unsafe extern "C" fn resolve_indicator(
-    mut it: *mut CborValue,
+    mut it: &mut CborValue,
     mut flags: libc::c_int,
 ) -> *const libc::c_char {
     static mut indicators: [[libc::c_char; 3]; 8] = [

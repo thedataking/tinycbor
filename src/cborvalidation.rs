@@ -408,7 +408,7 @@ unsafe extern "C" fn cbor_value_at_end(mut it: *const CborValue) -> bool {
 unsafe extern "C" fn cbor_value_get_next_byte(mut it: *const CborValue) -> *const uint8_t {
     return &(*it).vec[(*it).idx];
 }
-unsafe extern "C" fn _cbor_value_extract_int64_helper(mut value: *const CborValue) -> uint64_t {
+unsafe extern "C" fn _cbor_value_extract_int64_helper(mut value: &CborValue) -> uint64_t {
     return if 0
         != (*value).flags as libc::c_int & CborIteratorFlag_IntegerValueTooLarge as libc::c_int
     {
@@ -447,7 +447,7 @@ unsafe extern "C" fn cbor_value_is_integer(mut value: *const CborValue) -> bool 
     return (*value).type_0 as libc::c_int == CborIntegerType as libc::c_int;
 }
 unsafe extern "C" fn cbor_value_get_raw_integer(
-    mut value: *const CborValue,
+    mut value: &CborValue,
     mut result: *mut uint64_t,
 ) -> CborError {
     if 0 != !cbor_value_is_integer(value) as libc::c_int as libc::c_long {
@@ -472,7 +472,7 @@ unsafe extern "C" fn cbor_value_is_tag(mut value: *const CborValue) -> bool {
     return (*value).type_0 as libc::c_int == CborTagType as libc::c_int;
 }
 unsafe extern "C" fn cbor_value_get_tag(
-    mut value: *const CborValue,
+    mut value: &CborValue,
     mut result: *mut CborTag,
 ) -> CborError {
     if 0 != !cbor_value_is_tag(value) as libc::c_int as libc::c_long {
@@ -492,7 +492,7 @@ unsafe extern "C" fn cbor_value_is_float(mut value: *const CborValue) -> bool {
     return (*value).type_0 as libc::c_int == CborFloatType as libc::c_int;
 }
 unsafe extern "C" fn cbor_value_get_float(
-    mut value: *const CborValue,
+    mut value: &CborValue,
     mut result: *mut libc::c_float,
 ) -> CborError {
     let mut data: uint32_t = 0;
@@ -1238,7 +1238,7 @@ unsafe extern "C" fn get_utf8(
     };
 }
 unsafe extern "C" fn validate_number(
-    mut it: *mut CborValue,
+    mut it: &mut CborValue,
     mut type_0: CborType_0,
     mut flags: uint32_t,
 ) -> CborError {

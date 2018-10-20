@@ -724,7 +724,7 @@ pub unsafe extern "C" fn cbor_value_enter_container<'a>(
 }
 #[no_mangle]
 pub unsafe extern "C" fn _cbor_value_extract_number(
-    mut it: *mut CborValue,
+    mut it: &mut CborValue,
     mut len: *mut uint64_t,
 ) -> CborError {
     let mut end: *const uint8_t = (*it).get_end_ptr();
@@ -996,7 +996,7 @@ unsafe extern "C" fn get_string_chunk(
     return preparse_next_value(it);
 }
 unsafe extern "C" fn extract_length(
-    mut it: *mut CborValue,
+    mut it: &mut CborValue,
     mut len: *mut size_t,
 ) -> CborError {
     let mut v: uint64_t = 0;
@@ -1015,7 +1015,7 @@ unsafe extern "C" fn extract_length(
         }
     };
 }
-unsafe extern "C" fn prepare_string_iteration(mut it: *mut CborValue) -> () {
+unsafe extern "C" fn prepare_string_iteration(mut it: &mut CborValue) -> () {
     if !cbor_value_is_length_known(it) {
         /* chunked string: we're before the first chunk;
          * advance to the first chunk */
@@ -1025,15 +1025,15 @@ unsafe extern "C" fn prepare_string_iteration(mut it: *mut CborValue) -> () {
             as uint8_t
     };
 }
-unsafe extern "C" fn cbor_value_is_length_known(mut value: *const CborValue) -> bool {
-    return (*value).flags as libc::c_int & CborIteratorFlag_UnknownLength as libc::c_int == 0i32;
+fn cbor_value_is_length_known(mut value: &CborValue) -> bool {
+    return value.flags as libc::c_int & CborIteratorFlag_UnknownLength as libc::c_int == 0i32;
 }
-unsafe extern "C" fn cbor_value_is_text_string(mut value: *const CborValue) -> bool {
-    return (*value).type_0 as libc::c_int == CborTextStringType as libc::c_int;
+fn cbor_value_is_text_string(mut value: &CborValue) -> bool {
+    return value.type_0 as libc::c_int == CborTextStringType as libc::c_int;
 }
 /* Strings */
-unsafe extern "C" fn cbor_value_is_byte_string(mut value: *const CborValue) -> bool {
-    return (*value).type_0 as libc::c_int == CborByteStringType as libc::c_int;
+fn cbor_value_is_byte_string(mut value: &CborValue) -> bool {
+    return value.type_0 as libc::c_int == CborByteStringType as libc::c_int;
 }
 unsafe extern "C" fn advance_internal(mut it: &mut CborValue) -> CborError {
     let mut length: uint64_t = 0;
@@ -1115,7 +1115,7 @@ pub unsafe extern "C" fn cbor_value_advance_fixed(mut it: &mut CborValue) -> Cbo
 }
 #[no_mangle]
 pub unsafe extern "C" fn _cbor_value_decode_int64_internal(
-    mut value: *const CborValue,
+    mut value: &CborValue,
 ) -> uint64_t {
     if 0 != !(0
         != (*value).flags as libc::c_int & CborIteratorFlag_IntegerValueTooLarge as libc::c_int
@@ -1166,7 +1166,7 @@ pub unsafe extern "C" fn _cbor_value_decode_int64_internal(
         return get64((*value).get_ptr_at_offset(1));
     };
 }
-unsafe extern "C" fn _cbor_value_extract_int64_helper(mut value: *const CborValue) -> uint64_t {
+unsafe extern "C" fn _cbor_value_extract_int64_helper(mut value: &CborValue) -> uint64_t {
     return if 0
         != (*value).flags as libc::c_int & CborIteratorFlag_IntegerValueTooLarge as libc::c_int
     {
@@ -1181,7 +1181,7 @@ unsafe extern "C" fn cbor_value_is_integer(mut value: *const CborValue) -> bool 
 }
 #[no_mangle]
 pub unsafe extern "C" fn cbor_value_get_int64_checked(
-    mut value: *const CborValue,
+    mut value: &CborValue,
     mut result: *mut int64_t,
 ) -> CborError {
     let mut v: uint64_t = 0;
@@ -1218,7 +1218,7 @@ pub unsafe extern "C" fn cbor_value_get_int64_checked(
 }
 #[no_mangle]
 pub unsafe extern "C" fn cbor_value_get_int_checked(
-    mut value: *const CborValue,
+    mut value: &CborValue,
     mut result: *mut libc::c_int,
 ) -> CborError {
     let mut v: uint64_t = 0;
@@ -1437,7 +1437,7 @@ pub unsafe extern "C" fn cbor_value_get_half_float(
 }
 #[no_mangle]
 pub unsafe extern "C" fn _cbor_value_prepare_string_iteration(
-    mut it: *mut CborValue,
+    mut it: &mut CborValue,
 ) -> CborError {
     if 0 != !((*it).flags as libc::c_int & CborIteratorFlag_IteratingStringChunks as libc::c_int
         == 0i32) as libc::c_int as libc::c_long
