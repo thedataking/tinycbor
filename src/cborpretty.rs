@@ -1,6 +1,13 @@
 use libc;
 use cborparser::CborValue;
 use cborparser::_cbor_value_extract_number;
+use cborparser::_cbor_value_decode_int64_internal;
+use cborparser::cbor_value_enter_container;
+use cborparser::cbor_value_leave_container;
+use cborparser::_cbor_value_prepare_string_iteration;
+use cborparser::_cbor_value_get_string_chunk;
+use cborparser::cbor_value_advance_fixed;
+use cborparser::cbor_value_get_half_float;
 extern "C" {
     #[no_mangle]
     fn __assert_rtn(
@@ -16,25 +23,6 @@ extern "C" {
         __n: size_t,
     ) -> *mut libc::c_void;
     #[no_mangle]
-    fn cbor_value_advance_fixed(it: *mut CborValue) -> CborError_0;
-    #[no_mangle]
-    fn cbor_value_enter_container(
-        it: *const CborValue,
-        recursed: *mut CborValue,
-    ) -> CborError_0;
-    #[no_mangle]
-    fn cbor_value_leave_container(
-        it: *mut CborValue,
-        recursed: *const CborValue,
-    ) -> CborError_0;
-    #[no_mangle]
-    fn _cbor_value_decode_int64_internal(value: *const CborValue) -> uint64_t;
-    #[no_mangle]
-    fn cbor_value_get_half_float(
-        value: *const CborValue,
-        result: *mut libc::c_void,
-    ) -> CborError_0;
-    #[no_mangle]
     fn fabs(_: libc::c_double) -> libc::c_double;
     #[no_mangle]
     fn __fpclassifyl(_: libc::c_double) -> libc::c_int;
@@ -44,15 +32,6 @@ extern "C" {
     fn __fpclassifyf(_: libc::c_float) -> libc::c_int;
     #[no_mangle]
     fn ldexp(_: libc::c_double, _: libc::c_int) -> libc::c_double;
-    #[no_mangle]
-    fn _cbor_value_get_string_chunk(
-        value: *const CborValue,
-        bufferptr: *mut *const libc::c_void,
-        len: *mut size_t,
-        next: *mut CborValue,
-    ) -> CborError;
-    #[no_mangle]
-    fn _cbor_value_prepare_string_iteration(it: *mut CborValue) -> CborError_0;
 }
 pub type ptrdiff_t = libc::c_long;
 pub type size_t = libc::c_ulong;
@@ -185,7 +164,7 @@ pub const SmallValueBitLength: unnamed = 5;
 unsafe extern "C" fn cbor_value_at_end(mut it: *const CborValue) -> bool {
     return (*it).remaining == 0i32 as libc::c_uint;
 }
-unsafe extern "C" fn _cbor_value_extract_int64_helper(mut value: *const CborValue) -> uint64_t {
+unsafe extern "C" fn _cbor_value_extract_int64_helper(mut value: &CborValue) -> uint64_t {
     return if 0
         != (*value).flags as libc::c_int & CborIteratorFlag_IntegerValueTooLarge as libc::c_int
     {
@@ -194,15 +173,15 @@ unsafe extern "C" fn _cbor_value_extract_int64_helper(mut value: *const CborValu
         (*value).extra as libc::c_ulonglong
     };
 }
-unsafe extern "C" fn cbor_value_get_type(mut value: *const CborValue) -> CborType_0 {
+unsafe extern "C" fn cbor_value_get_type(mut value: &CborValue) -> CborType_0 {
     return (*value).type_0 as CborType_0;
 }
 /* Booleans */
-unsafe extern "C" fn cbor_value_is_boolean(mut value: *const CborValue) -> bool {
+unsafe extern "C" fn cbor_value_is_boolean(mut value: &CborValue) -> bool {
     return (*value).type_0 as libc::c_int == CborBooleanType as libc::c_int;
 }
 unsafe extern "C" fn cbor_value_get_boolean(
-    mut value: *const CborValue,
+    mut value: &CborValue,
     mut result: *mut bool,
 ) -> CborError_0 {
     if 0 != !cbor_value_is_boolean(value) as libc::c_int as libc::c_long {
@@ -250,7 +229,7 @@ unsafe extern "C" fn cbor_value_is_unsigned_integer(mut value: *const CborValue)
         && (*value).flags as libc::c_int & CborIteratorFlag_NegativeInteger as libc::c_int == 0i32;
 }
 unsafe extern "C" fn cbor_value_get_raw_integer(
-    mut value: *const CborValue,
+    mut value: &CborValue,
     mut result: *mut uint64_t,
 ) -> CborError_0 {
     if 0 != !cbor_value_is_integer(value) as libc::c_int as libc::c_long {
@@ -275,7 +254,7 @@ unsafe extern "C" fn cbor_value_is_tag(mut value: *const CborValue) -> bool {
     return (*value).type_0 as libc::c_int == CborTagType as libc::c_int;
 }
 unsafe extern "C" fn cbor_value_get_tag(
-    mut value: *const CborValue,
+    mut value: &CborValue,
     mut result: *mut CborTag,
 ) -> CborError_0 {
     if 0 != !cbor_value_is_tag(value) as libc::c_int as libc::c_long {
@@ -335,7 +314,7 @@ unsafe extern "C" fn cbor_value_is_double(mut value: *const CborValue) -> bool {
     return (*value).type_0 as libc::c_int == CborDoubleType as libc::c_int;
 }
 unsafe extern "C" fn cbor_value_get_double(
-    mut value: *const CborValue,
+    mut value: &CborValue,
     mut result: *mut libc::c_double,
 ) -> CborError_0 {
     let mut data: uint64_t = 0;
@@ -536,7 +515,14 @@ unsafe extern "C" fn value_to_pretty(
                     /* any iteration, except the second for a non-chunked string */
                     indicator_0 = resolve_indicator(it, flags)
                 }
-                err = _cbor_value_get_string_chunk(it, &mut ptr, &mut n, it);
+                // introduce temporary to avoid having two mutable refs to it.
+                let mut tmp = *it;
+                err = _cbor_value_get_string_chunk(
+                    it,
+                    &mut ptr,
+                    &mut n,
+                    Some(&mut tmp));
+                *it = tmp;
                 if ptr.is_null() {
                     break;
                 }

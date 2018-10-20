@@ -1176,7 +1176,7 @@ unsafe extern "C" fn _cbor_value_extract_int64_helper(mut value: &CborValue) -> 
     };
 }
 /* Integers */
-unsafe extern "C" fn cbor_value_is_integer(mut value: *const CborValue) -> bool {
+unsafe extern "C" fn cbor_value_is_integer(mut value: &CborValue) -> bool {
     return (*value).type_0 as libc::c_int == CborIntegerType as libc::c_int;
 }
 #[no_mangle]
@@ -1411,7 +1411,7 @@ unsafe extern "C" fn cbor_value_is_half_float(mut value: *const CborValue) -> bo
 }
 #[no_mangle]
 pub unsafe extern "C" fn cbor_value_get_half_float(
-    mut value: *const CborValue,
+    mut value: &CborValue,
     mut result: *mut libc::c_void,
 ) -> CborError {
     let mut v: uint16_t = 0;
