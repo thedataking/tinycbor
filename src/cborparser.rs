@@ -191,7 +191,6 @@ impl<'a> CborValue<'a> {
         let ptr: *const uint8_t = &self.vec[self.idx];
         ptr.wrapping_offset_from(other)
     }
-
 }
 pub const Value16Bit: unnamed = 25;
 pub const Value8Bit: unnamed = 24;
@@ -649,9 +648,9 @@ unsafe extern "C" fn preparse_next_value_nodecrement(mut it: &mut CborValue) -> 
         return preparse_value(it);
     };
 }
-unsafe extern "C" fn cbor_value_is_container(mut it: *const CborValue) -> bool {
-    return (*it).type_0 as libc::c_int == CborArrayType as libc::c_int
-        || (*it).type_0 as libc::c_int == CborMapType as libc::c_int;
+fn cbor_value_is_container(mut it: &CborValue) -> bool {
+    return it.type_0 as libc::c_int == CborArrayType as libc::c_int
+        || it.type_0 as libc::c_int == CborMapType as libc::c_int;
 }
 unsafe extern "C" fn cbor_value_at_end(mut it: *const CborValue) -> bool {
     return (*it).remaining == 0i32 as libc::c_uint;
@@ -659,7 +658,7 @@ unsafe extern "C" fn cbor_value_at_end(mut it: *const CborValue) -> bool {
 #[no_mangle]
 pub unsafe extern "C" fn cbor_value_enter_container<'a>(
     mut it: &mut CborValue<'a>,
-    mut recursed: & mut CborValue<'a>,
+    mut recursed: &mut CborValue<'a>,
 ) -> CborError {
     if 0 != !cbor_value_is_container(it) as libc::c_int as libc::c_long {
         __assert_rtn(

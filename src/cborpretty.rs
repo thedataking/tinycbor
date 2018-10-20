@@ -377,7 +377,7 @@ unsafe extern "C" fn cbor_value_get_double(
 pub unsafe extern "C" fn cbor_value_to_pretty_stream(
     mut streamFunction: CborStreamFunction,
     mut token: *mut libc::c_void,
-    mut value: *mut CborValue,
+    mut value: &mut CborValue,
     mut flags: libc::c_int,
 ) -> CborError_0 {
     return value_to_pretty(streamFunction, token, value, flags, 1024i32);
@@ -385,7 +385,7 @@ pub unsafe extern "C" fn cbor_value_to_pretty_stream(
 unsafe extern "C" fn value_to_pretty(
     mut stream: CborStreamFunction,
     mut out: *mut libc::c_void,
-    mut it: *mut CborValue,
+    mut it: &mut CborValue,
     mut flags: libc::c_int,
     mut recursionsLeft: libc::c_int,
 ) -> CborError_0 {
@@ -932,7 +932,7 @@ unsafe extern "C" fn printRecursionLimit(
     );
 }
 unsafe extern "C" fn get_indicator(
-    mut it: *mut CborValue,
+    mut it: &mut CborValue,
     mut flags: libc::c_int,
 ) -> *const libc::c_char {
     return resolve_indicator(it, flags);
@@ -1303,7 +1303,7 @@ unsafe extern "C" fn hexDump(
 unsafe extern "C" fn container_to_pretty(
     mut stream: CborStreamFunction,
     mut out: *mut libc::c_void,
-    mut it: *mut CborValue,
+    mut it: &mut CborValue,
     mut containerType: CborType_0,
     mut flags: libc::c_int,
     mut recursionsLeft: libc::c_int,

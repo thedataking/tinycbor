@@ -1,6 +1,7 @@
 use libc;
 use cborparser::CborValue;
 use cborparser::_cbor_value_extract_number;
+use cborparser::cbor_value_enter_container;
 extern "C" {
     #[no_mangle]
     fn __assert_rtn(
@@ -19,11 +20,6 @@ extern "C" {
     ) -> *mut libc::c_void;
     #[no_mangle]
     fn cbor_value_advance_fixed(it: *mut CborValue) -> CborError;
-    #[no_mangle]
-    fn cbor_value_enter_container(
-        it: *const CborValue,
-        recursed: *mut CborValue,
-    ) -> CborError;
     #[no_mangle]
     fn cbor_value_leave_container(
         it: *mut CborValue,
@@ -609,7 +605,7 @@ pub unsafe extern "C" fn cbor_value_validate(
     };
 }
 unsafe extern "C" fn validate_value(
-    mut it: *mut CborValue,
+    mut it: &mut CborValue,
     mut flags: uint32_t,
     mut recursionLeft: libc::c_int,
 ) -> CborError {
@@ -957,7 +953,7 @@ unsafe extern "C" fn validate_simple_type(
     };
 }
 unsafe extern "C" fn validate_tag(
-    mut it: *mut CborValue,
+    mut it: &mut CborValue,
     mut tag: CborTag,
     mut flags: uint32_t,
     mut recursionLeft: libc::c_int,
@@ -1302,7 +1298,7 @@ unsafe extern "C" fn validate_number(
     };
 }
 unsafe extern "C" fn validate_container(
-    mut it: *mut CborValue,
+    mut it: &mut CborValue,
     mut containerType: libc::c_int,
     mut flags: uint32_t,
     mut recursionLeft: libc::c_int,
