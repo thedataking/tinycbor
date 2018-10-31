@@ -1,261 +1,17 @@
 #![allow(
-    dead_code, mutable_transmutes, non_camel_case_types, non_snake_case, non_upper_case_globals,
+    dead_code,
+    mutable_transmutes,
+    non_camel_case_types,
+    non_snake_case,
+    non_upper_case_globals,
     unused_mut
 )]
 #![feature(libc, ptr_wrapping_offset_from)]
 extern crate libc;
-#[cfg(
-    not(
-        source_header = "/home/miguelsaldivar/workspace/C2Rust/dependencies/llvm-6.0.1/build.donna/lib/clang/6.0.1/include/stddef.h"
-    )
-)]
-pub mod stddef_h {
-    pub type ptrdiff_t = libc::c_long;
-    pub type size_t = libc::c_ulong;
-    use super::libc;
-}
-#[cfg(not(source_header = "/usr/include/x86_64-linux-gnu/bits/types.h"))]
-pub mod types_h {
-    pub type __uint8_t = libc::c_uchar;
-    pub type __uint16_t = libc::c_ushort;
-    pub type __uint32_t = libc::c_uint;
-    pub type __uint64_t = libc::c_ulong;
-    use super::libc;
-}
-#[cfg(not(source_header = "/usr/include/x86_64-linux-gnu/bits/stdint-uintn.h"))]
-pub mod stdint_uintn_h {
-    pub type uint8_t = __uint8_t;
-    pub type uint16_t = __uint16_t;
-    pub type uint32_t = __uint32_t;
-    pub type uint64_t = __uint64_t;
-    use super::types_h::{__uint16_t, __uint32_t, __uint64_t, __uint8_t};
-}
-#[cfg(not(source_header = "/home/miguelsaldivar/workspace/misc/tinycbor/src/cbor.h"))]
-pub mod cbor_h {
-    /* ***************************************************************************
-    **
-    ** Copyright (C) 2017 Intel Corporation
-    **
-    ** Permission is hereby granted, free of charge, to any person obtaining a copy
-    ** of this software and associated documentation files (the "Software"), to deal
-    ** in the Software without restriction, including without limitation the rights
-    ** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    ** copies of the Software, and to permit persons to whom the Software is
-    ** furnished to do so, subject to the following conditions:
-    **
-    ** The above copyright notice and this permission notice shall be included in
-    ** all copies or substantial portions of the Software.
-    **
-    ** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    ** IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    ** FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    ** AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    ** LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    ** OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    ** THE SOFTWARE.
-    **
-    ****************************************************************************/
-    pub type CborType = libc::c_uint;
-    /* equivalent to the break byte, so it will never be used */
-    pub const CborInvalidType: CborType = 255;
-    pub const CborDoubleType: CborType = 251;
-    pub const CborFloatType: CborType = 250;
-    pub const CborHalfFloatType: CborType = 249;
-    pub const CborUndefinedType: CborType = 247;
-    pub const CborNullType: CborType = 246;
-    pub const CborBooleanType: CborType = 245;
-    pub const CborSimpleType: CborType = 224;
-    pub const CborTagType: CborType = 192;
-    pub const CborMapType: CborType = 160;
-    pub const CborArrayType: CborType = 128;
-    pub const CborTextStringType: CborType = 96;
-    pub const CborByteStringType: CborType = 64;
-    pub const CborIntegerType: CborType = 0;
-    pub type CborTag = uint64_t;
-    /* #define the constants so we can check with #ifdef */
-    /* Error API */
-    pub type CborError = libc::c_int;
-    /* INT_MAX on two's complement machines */
-    pub const CborErrorInternalError: CborError = 2147483647;
-    pub const CborErrorOutOfMemory: CborError = -2147483648;
-    pub const CborErrorJsonNotImplemented: CborError = 1282;
-    pub const CborErrorJsonObjectKeyNotString: CborError = 1281;
-    /* errors in converting to JSON */
-    pub const CborErrorJsonObjectKeyIsAggregate: CborError = 1280;
-    pub const CborErrorUnsupportedType: CborError = 1026;
-    pub const CborErrorNestingTooDeep: CborError = 1025;
-    /* internal implementation errors */
-    pub const CborErrorDataTooLarge: CborError = 1024;
-    pub const CborErrorTooFewItems: CborError = 769;
-    /* encoder errors */
-    pub const CborErrorTooManyItems: CborError = 768;
-    pub const CborErrorMapKeysNotUnique: CborError = 523;
-    pub const CborErrorMapNotSorted: CborError = 522;
-    pub const CborErrorMapKeyNotString: CborError = 521;
-    pub const CborErrorOverlongEncoding: CborError = 520;
-    pub const CborErrorImproperValue: CborError = 519;
-    pub const CborErrorExcludedValue: CborError = 518;
-    pub const CborErrorExcludedType: CborError = 517;
-    pub const CborErrorInvalidUtf8TextString: CborError = 516;
-    pub const CborErrorDuplicateObjectKeys: CborError = 515;
-    pub const CborErrorInappropriateTagForType: CborError = 514;
-    pub const CborErrorUnknownTag: CborError = 513;
-    /* parser errors in strict mode parsing only */
-    pub const CborErrorUnknownSimpleType: CborError = 512;
-    /* types of value less than 32 encoded in two bytes */
-    pub const CborErrorIllegalSimpleType: CborError = 262;
-    pub const CborErrorIllegalNumber: CborError = 261;
-    /* type not allowed here */
-    pub const CborErrorIllegalType: CborError = 260;
-    /* can only happen in major type 7 */
-    pub const CborErrorUnknownType: CborError = 259;
-    pub const CborErrorUnexpectedBreak: CborError = 258;
-    pub const CborErrorUnexpectedEOF: CborError = 257;
-    /* parser errors streaming errors */
-    pub const CborErrorGarbageAtEnd: CborError = 256;
-    pub const CborErrorIO: CborError = 4;
-    pub const CborErrorAdvancePastEOF: CborError = 3;
-    /* request for length in array, map, or string with indeterminate length */
-    pub const CborErrorUnknownLength: CborError = 2;
-    /* errors in all modes */
-    pub const CborUnknownError: CborError = 1;
-    pub const CborNoError: CborError = 0;
-    /* Parser API */
-    pub type CborParserIteratorFlags = libc::c_uint;
-    pub const CborIteratorFlag_ContainerIsMap: CborParserIteratorFlags = 32;
-    pub const CborIteratorFlag_UnknownLength: CborParserIteratorFlags = 4;
-    pub const CborIteratorFlag_IteratingStringChunks: CborParserIteratorFlags = 2;
-    pub const CborIteratorFlag_NegativeInteger: CborParserIteratorFlags = 2;
-    pub const CborIteratorFlag_IntegerValueTooLarge: CborParserIteratorFlags = 1;
-    #[derive(Copy, Clone)]
-    #[repr(C)]
-    pub struct CborParser {
-        pub end: *const uint8_t,
-        pub flags: uint32_t,
-    }
-    #[derive(Copy, Clone)]
-    #[repr(C)]
-    pub struct CborValue {
-        pub parser: *const CborParser,
-        pub ptr: *const uint8_t,
-        pub remaining: uint32_t,
-        pub extra: uint16_t,
-        pub type_0: uint8_t,
-        pub flags: uint8_t,
-    }
-    /* Human-readable (dump) API */
-    pub type CborPrettyFlags = libc::c_uint;
-    pub const CborPrettyDefaultFlags: CborPrettyFlags = 2;
-    pub const CborPrettyMergeStringFragments: CborPrettyFlags = 0;
-    pub const CborPrettyShowStringFragments: CborPrettyFlags = 256;
-    pub const CborPrettyIndicateOverlongNumbers: CborPrettyFlags = 4;
-    /* deprecated */
-    pub const CborPrettyIndicateIndetermineLength: CborPrettyFlags = 2;
-    pub const CborPrettyIndicateIndeterminateLength: CborPrettyFlags = 2;
-    pub const CborPrettyTextualEncodingIndicators: CborPrettyFlags = 0;
-    pub const CborPrettyNumericEncodingIndicators: CborPrettyFlags = 1;
-    pub type CborStreamFunction = Option<
-        unsafe extern "C" fn(_: *mut libc::c_void, _: *const libc::c_char, ...) -> CborError,
-    >;
-    use super::libc;
-    use super::stdint_uintn_h::{uint16_t, uint32_t, uint64_t, uint8_t};
-    extern "C" {
-        #[no_mangle]
-        pub fn cbor_value_advance_fixed(it: *mut CborValue) -> CborError;
-        #[no_mangle]
-        pub fn cbor_value_enter_container(
-            it: *const CborValue,
-            recursed: *mut CborValue,
-        ) -> CborError;
-        #[no_mangle]
-        pub fn cbor_value_leave_container(
-            it: *mut CborValue,
-            recursed: *const CborValue,
-        ) -> CborError;
-        #[no_mangle]
-        pub fn _cbor_value_decode_int64_internal(value: *const CborValue) -> uint64_t;
-        #[no_mangle]
-        pub fn cbor_value_get_half_float(
-            value: *const CborValue,
-            result: *mut libc::c_void,
-        ) -> CborError;
-    }
-}
-#[cfg(not(source_header = "/home/miguelsaldivar/workspace/misc/tinycbor/src/cborinternal_p.h"))]
-pub mod cborinternal_p_h {
-    pub const Value8Bit: unnamed = 24;
-    pub const IndefiniteLength: unnamed = 31;
-    /* 31 */
-    pub const SmallValueMask: unnamed = 31;
-    pub type unnamed = libc::c_int;
-    pub const BreakByte: unnamed = 255;
-    pub const MajorTypeMask: unnamed = -32;
-    pub const MajorTypeShift: unnamed = 5;
-    pub const Value64Bit: unnamed = 27;
-    pub const Value32Bit: unnamed = 26;
-    pub const Value16Bit: unnamed = 25;
-    pub const SmallValueBitLength: unnamed = 5;
-    use super::cbor_h::{CborError, CborValue};
-    use super::libc;
-    use super::stddef_h::size_t;
-    use super::stdint_uintn_h::{uint64_t, uint8_t};
-    extern "C" {
-        #[no_mangle]
-        pub fn _cbor_value_extract_number(
-            ptr: *mut *const uint8_t,
-            end: *const uint8_t,
-            len: *mut uint64_t,
-        ) -> CborError;
-        #[no_mangle]
-        pub fn _cbor_value_get_string_chunk(
-            value: *const CborValue,
-            bufferptr: *mut *const libc::c_void,
-            len: *mut size_t,
-            next: *mut CborValue,
-        ) -> CborError;
-        #[no_mangle]
-        pub fn _cbor_value_prepare_string_iteration(it: *mut CborValue) -> CborError;
-    }
-}
-#[cfg(not(source_header = "/usr/include/string.h"))]
-pub mod string_h {
-    use super::libc;
-    extern "C" {
-        #[no_mangle]
-        pub fn memcpy(
-            _: *mut libc::c_void,
-            _: *const libc::c_void,
-            _: libc::c_ulong,
-        ) -> *mut libc::c_void;
-    }
-}
-#[cfg(not(source_header = "/usr/include/x86_64-linux-gnu/bits/mathcalls.h"))]
-pub mod mathcalls_h {
-    use super::libc;
-    extern "C" {
-        #[no_mangle]
-        pub fn fabs(_: libc::c_double) -> libc::c_double;
-        #[no_mangle]
-        pub fn ldexp(_: libc::c_double, _: libc::c_int) -> libc::c_double;
-    }
-}
-#[cfg(not(source_header = "/usr/include/x86_64-linux-gnu/bits/mathcalls-helper-functions.h"))]
-pub mod mathcalls_helper_functions_h {
-    use super::libc;
-    extern "C" {
-        #[no_mangle]
-        pub fn __fpclassifyl(__value: libc::c_double) -> libc::c_int;
-        #[no_mangle]
-        pub fn __fpclassify(__value: libc::c_double) -> libc::c_int;
-        #[no_mangle]
-        pub fn __fpclassifyf(__value: libc::c_float) -> libc::c_int;
-    }
-}
-#[cfg(not(source_header = "/home/miguelsaldivar/workspace/misc/tinycbor/src/utf8_p.h"))]
-pub mod utf8_p_h {}
-use self::cbor_h::{
-    CborArrayType, CborBooleanType, CborByteStringType, CborDoubleType, CborError,
-    CborErrorAdvancePastEOF, CborErrorDataTooLarge, CborErrorDuplicateObjectKeys,
+use cbor_h::{
+    cbor_value_advance_fixed, cbor_value_enter_container, cbor_value_get_half_float,
+    cbor_value_leave_container, CborArrayType, CborBooleanType, CborByteStringType, CborDoubleType,
+    CborError, CborErrorAdvancePastEOF, CborErrorDataTooLarge, CborErrorDuplicateObjectKeys,
     CborErrorExcludedType, CborErrorExcludedValue, CborErrorGarbageAtEnd, CborErrorIO,
     CborErrorIllegalNumber, CborErrorIllegalSimpleType, CborErrorIllegalType,
     CborErrorImproperValue, CborErrorInappropriateTagForType, CborErrorInternalError,
@@ -275,20 +31,18 @@ use self::cbor_h::{
     CborPrettyNumericEncodingIndicators, CborPrettyShowStringFragments,
     CborPrettyTextualEncodingIndicators, CborSimpleType, CborStreamFunction, CborTag, CborTagType,
     CborTextStringType, CborType, CborUndefinedType, CborUnknownError, CborValue,
-    _cbor_value_decode_int64_internal, cbor_value_advance_fixed, cbor_value_enter_container,
-    cbor_value_get_half_float, cbor_value_leave_container,
+    _cbor_value_decode_int64_internal,
 };
-use self::cborinternal_p_h::{
-    unnamed, BreakByte, IndefiniteLength, MajorTypeMask, MajorTypeShift, SmallValueBitLength,
+use cborinternal_p_h::{
+    BreakByte, IndefiniteLength, MajorTypeMask, MajorTypeShift, SmallValueBitLength,
     SmallValueMask, Value16Bit, Value32Bit, Value64Bit, Value8Bit, _cbor_value_extract_number,
-    _cbor_value_get_string_chunk, _cbor_value_prepare_string_iteration,
+    _cbor_value_get_string_chunk, _cbor_value_prepare_string_iteration, unnamed,
 };
-use self::mathcalls_h::{fabs, ldexp};
-use self::mathcalls_helper_functions_h::{__fpclassify, __fpclassifyf, __fpclassifyl};
-use self::stddef_h::{ptrdiff_t, size_t};
-use self::stdint_uintn_h::{uint16_t, uint32_t, uint64_t, uint8_t};
-use self::string_h::memcpy;
-use self::types_h::{__uint16_t, __uint32_t, __uint64_t, __uint8_t};
+use stdlib::{
+    __fpclassify, __fpclassifyf, __fpclassifyl, __uint16_t, __uint32_t, __uint64_t, __uint8_t,
+    fabs, ldexp, memcpy, ptrdiff_t, size_t, uint16_t, uint32_t, uint64_t, uint8_t,
+};
+
 unsafe extern "C" fn cbor_value_at_end(mut it: *const CborValue) -> bool {
     return (*it).remaining == 0i32 as libc::c_uint;
 }
@@ -974,7 +728,8 @@ unsafe extern "C" fn resolve_indicator(
         } else if 0 != flags & CborPrettyIndicateIndeterminateLength as libc::c_int
             && additional_information as libc::c_int == IndefiniteLength as libc::c_int
         {
-            return indicators[(IndefiniteLength as libc::c_int - Value8Bit as libc::c_int) as usize]
+            return indicators
+                [(IndefiniteLength as libc::c_int - Value8Bit as libc::c_int) as usize]
                 .as_ptr();
         } else if flags & CborPrettyIndicateOverlongNumbers as libc::c_int == 0i32 {
             return no_indicator;
